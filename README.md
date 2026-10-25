@@ -29,3 +29,10 @@ The local environment file is git-ignored. The frontend only uses the Supabase p
 ## Notes
 
 Listings remain drafts until moderation and a verified ₦500 / 30-day subscription activate them. Payment verification and vendor onboarding are separate backend workflows and are not simulated by the frontend.
+
+
+## Payments (Phase 4)
+
+Flutterwave Standard checkout is initiated by the `start-listing-payment` Supabase Edge Function. The `flutterwave-webhook` function checks the webhook secret hash and verifies each transaction directly with Flutterwave before a server-only database function activates the 30-day listing subscription. The client cannot choose the charge amount or mark a payment successful.
+
+Before testing, configure `FLW_SECRET_KEY`, `FLW_SECRET_HASH`, and `TRADR_APP_URL` as Supabase Edge Function secrets and set the webhook URL in Flutterwave. Follow [the test-mode setup guide](docs/flutterwave-test-mode.md). Never commit or share provider secrets.

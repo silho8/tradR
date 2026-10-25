@@ -52,6 +52,10 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false)
   const [listingOpen, setListingOpen] = useState(false)
   const [vendorOnboardingOpen, setVendorOnboardingOpen] = useState(false)
+  const [dashboardOpen, setDashboardOpen] = useState(false)
+  const [myListings, setMyListings] = useState<Array<{ id: string; title: string; status: string; moderation_status: string; visible_until: string | null }>>([])
+  const [vendorStatus, setVendorStatus] = useState<string | null>(null)
+  const [paymentBusyId, setPaymentBusyId] = useState('')
   const [shopName, setShopName] = useState('')
   const [shopBio, setShopBio] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
@@ -83,6 +87,10 @@ export default function App() {
     return () => data.subscription.unsubscribe()
   }, [])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 3200); return () => window.clearTimeout(timer) }, [toast])
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('payment') === 'return') setToast('Payment returned. We are confirming it securely. Check My shop in a moment for the verified status.')
+  }, [])
 
   const listings = useMemo(() => {
     const term = search.toLowerCase().trim()
@@ -127,6 +135,32 @@ export default function App() {
     } catch (err) { setToast(err instanceof Error ? err.message : 'Could not save listing.') } finally { setBusy(false) }
   }
 
+  async function openDashboard() {
+    if (!db || !user) { setAuthOpen(true); return }
+    setBusy(true)
+    try {
+      const { data: vendor, error: vendorError } = await db.from('vendors').select('id,verification_status').eq('profile_id', user.id).maybeSingle()
+      if (vendorError) throw vendorError
+      if (!vendor) { setVendorOnboardingOpen(true); setToast('Set up your shop first.'); return }
+      setVendorStatus(vendor.verification_status)
+      const { data, error } = await db.from('listings').select('id,title,status,moderation_status,visible_until').eq('vendor_id', vendor.id).order('created_at', { ascending: false })
+      if (error) throw error
+      setMyListings(data ?? [])
+      setDashboardOpen(true)
+    } catch (err) { setToast(err instanceof Error ? err.message : 'Could not load your shop.') } finally { setBusy(false) }
+  }
+
+  async function startListingPayment(listingId: string) {
+    if (!db || !user) { setAuthOpen(true); return }
+    setPaymentBusyId(listingId)
+    try {
+      const { data, error } = await db.functions.invoke('start-listing-payment', { body: { listing_id: listingId } })
+      if (error) throw error
+      if (typeof data?.checkout_url !== 'string') throw new Error(data?.error || 'Payment checkout is not available yet.')
+      window.location.assign(data.checkout_url)
+    } catch (err) { setToast(err instanceof Error ? err.message : 'Could not start payment.') } finally { setPaymentBusyId('') }
+  }
+
   const img = (l: Listing) => l.image_urls?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80'
   const closeModal = () => { setAuthOpen(false); setListingOpen(false); setVendorOnboardingOpen(false); setSelected(null) }
 
@@ -158,7 +192,7 @@ export default function App() {
       <a className="brand" href="#" onClick={() => { setCategory('All finds'); setSearch('') }}><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></a>
       <div className="header-location"><Icon name="pin" size={17}/><span><b>Lead City University</b><small>Ibadan, Nigeria</small></span><span className="chevron">⌄</span></div>
       <label className="header-search"><Icon name="search" size={18}/><input placeholder="Find anything on campus..." value={search} onChange={e => setSearch(e.target.value)} aria-label="Search marketplace"/><kbd>⌘ K</kbd></label>
-      <nav className="header-actions"><button className="nav-link" onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}>Explore</button><button className="nav-link" onClick={() => setToast(favorites.length ? favorites.length + ' finds saved.' : 'Tap a heart to save a find.')}>Saved <sup>{favorites.length || ''}</sup></button>{user ? <button className="login-button" onClick={async () => { await db?.auth.signOut(); setUser(null); setToast('Signed out.') }}>{(user.email?.[0] ?? 'U').toUpperCase()} · Sign out</button> : <button className="login-button" onClick={() => { setAuthMode('signin'); setAuthOpen(true) }}>Log in</button>}<button className="sell-button" onClick={() => user ? setListingOpen(true) : setAuthOpen(true)}><Icon name="plus" size={17}/> Sell something</button></nav>
+      <nav className="header-actions"><button className="nav-link" onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}>Explore</button><button className="nav-link" onClick={() => setToast(favorites.length ? favorites.length + ' finds saved.' : 'Tap a heart to save a find.')}>Saved <sup>{favorites.length || ''}</sup></button>{user ? <><button className="nav-link" onClick={() => void openDashboard()}>My shop</button><button className="login-button" onClick={async () => { await db?.auth.signOut(); setUser(null); setToast('Signed out.') }}>{(user.email?.[0] ?? 'U').toUpperCase()} · Sign out</button></> : <button className="login-button" onClick={() => { setAuthMode('signin'); setAuthOpen(true) }}>Log in</button>}<button className="sell-button" onClick={() => user ? setListingOpen(true) : setAuthOpen(true)}><Icon name="plus" size={17}/> Sell something</button></nav>
     </header>
 
     <main>
@@ -185,13 +219,15 @@ export default function App() {
     </main>
 
     <footer className="site-footer"><a className="brand" href="#"><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></a><span className="footer-note">GOOD FINDS TRAVEL FAST.</span><span className="footer-copy">© 2026 tradR. Made for campus life.</span><button onClick={() => setToast('For safety concerns, please contact the tradR admin team.')}>Safety & support ↗</button></footer>
-    <nav className="mobile-bottom-nav"><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><span>⌂</span>Home</button><button onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}><Icon name="search"/>Explore</button><button onClick={() => setToast(favorites.length ? favorites.length + ' saved finds.' : 'Tap a heart to save a find.')}><Icon name="heart"/>Saved</button><button onClick={() => user ? setListingOpen(true) : setAuthOpen(true)}><Icon name="plus"/>Sell</button></nav>
+    <nav className="mobile-bottom-nav"><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><span>⌂</span>Home</button><button onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}><Icon name="search"/>Explore</button><button onClick={() => setToast(favorites.length ? favorites.length + ' saved finds.' : 'Tap a heart to save a find.')}><Icon name="heart"/>Saved</button>{user ? <button onClick={() => void openDashboard()}><Icon name="plus"/>My shop</button> : <button onClick={() => setAuthOpen(true)}><Icon name="plus"/>Sell</button>}</nav>
 
     {selected && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setSelected(null) }}><section className="detail-modal" role="dialog" aria-modal="true" aria-label="Listing details"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Close"><Icon name="close"/></button><img className="detail-image" src={img(selected)} alt={selected.title}/><div className="detail-content"><span className="detail-category">{selected.category}</span><h2>{selected.title}</h2><strong className="detail-price">{money(Number(selected.price_ngn))}</strong><p>{selected.description}</p><div className="detail-seller"><span className="vendor-avatar large">{(selected.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span><b>{selected.vendor?.shop_name ?? 'LCU seller'}</b><small>Lead City University · Ibadan</small></span></div><button className="whatsapp-button" onClick={() => { const phone = selected.vendor?.whatsapp_number; if (!phone) { setToast('Seller contact is not available yet.'); return } window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent('Hi! I found "' + selected.title + '" on tradR. Is it still available?'), '_blank', 'noopener,noreferrer') }}><Icon name="message"/> Chat with seller on WhatsApp <Icon name="arrow"/></button><small className="direct-note">You’ll connect directly with the seller. Always meet safely on campus.</small></div></section></div>}
 
     {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) closeModal() }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="auth-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">COME ON IN</span><h2 id="auth-heading">{authMode === 'signup' ? 'Your people are here.' : 'Good to have you back.'}</h2><p>{authMode === 'signup' ? 'Make an account and get closer to the good stuff.' : 'Sign in to pick up where you left off.'}</p><form onSubmit={authSubmit}>{authMode === 'signup' && <label>Your name<input value={name} onChange={e => setName(e.target.value)} required minLength={2} placeholder="What should we call you?"/></label>}<label>Email address<input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" autoComplete="email"/></label><label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} placeholder="At least 8 characters" autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}/></label><button className="modal-primary" disabled={busy}>{busy ? 'One sec…' : authMode === 'signup' ? 'Create my account' : 'Log in'} <Icon name="arrow"/></button></form><div className="modal-switch">{authMode === 'signup' ? 'Already part of the crew?' : 'New around here?'} <button onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}>{authMode === 'signup' ? 'Log in' : 'Create an account'}</button></div><small className="form-footnote">Use tradR responsibly and treat fellow students with respect.</small></section></div>}
 
     {vendorOnboardingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setVendorOnboardingOpen(false) }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="vendor-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR LITTLE CORNER OF LCU</span><h2 id="vendor-heading">Set up your shop.</h2><p>Give campus buyers a name and a way to reach you. Your shop needs approval before listings go live.</p><form onSubmit={createVendor}><label>Shop or service name<input value={shopName} onChange={e => setShopName(e.target.value)} required minLength={2} maxLength={100} placeholder="e.g. Tomi Hair Studio"/></label><label>WhatsApp number<input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} required placeholder="08012345678"/><small className="field-hint">Only shared with buyers through your listing.</small></label><label>Short bio (optional)<textarea value={shopBio} onChange={e => setShopBio(e.target.value)} maxLength={600} rows={3} placeholder="What do you sell or help people with?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Setting up…' : 'Create my shop'} <Icon name="arrow"/></button></form><small className="form-footnote">Your shop starts as pending review. We never fake payment or approval status.</small></section></div>}
+
+    {dashboardOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDashboardOpen(false) }}><section className="form-modal dashboard-modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-heading"><button className="modal-close" onClick={() => setDashboardOpen(false)} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR CAMPUS BUSINESS</span><h2 id="dashboard-heading">Your shop.</h2><p>{vendorStatus === 'approved' ? 'Manage your listings and activate approved ones for ₦500 per 30 days.' : 'Your shop is waiting for admin approval. You can prepare drafts while we review it.'}</p>{myListings.length ? <div className="dashboard-list">{myListings.map(item => { const active = item.status === 'published' && item.visible_until && Date.parse(item.visible_until) > Date.now(); const ready = item.moderation_status === 'approved' && vendorStatus === 'approved'; return <div className="dashboard-list-item" key={item.id}><div className="dashboard-list-copy"><b>{item.title}</b><small>{active ? 'Active until ' + new Date(item.visible_until as string).toLocaleDateString('en-NG') : item.moderation_status === 'approved' ? 'Approved · ready for subscription' : 'Awaiting listing review'}</small></div>{active ? <span className="dashboard-status">ACTIVE</span> : ready ? <button className="dashboard-pay-button" disabled={paymentBusyId === item.id} onClick={() => void startListingPayment(item.id)}>{paymentBusyId === item.id ? 'Opening…' : 'Pay ₦500'} <Icon name="arrow" size={15}/></button> : <span className="dashboard-status pending">IN REVIEW</span>}</div> })}</div> : <div className="dashboard-empty"><b>No listings yet.</b><span>Start with a draft, then pay once it passes review.</span><button className="modal-primary" onClick={() => { setDashboardOpen(false); setListingOpen(true) }}>Create a listing <Icon name="arrow"/></button></div>}<small className="form-footnote">Payments are verified by Flutterwave on the server. A redirect alone never activates a listing.</small></section></div>}
 
     {listingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setListingOpen(false) }}><section className="form-modal listing-form-modal" role="dialog" aria-modal="true" aria-labelledby="listing-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">PUT IT OUT THERE</span><h2 id="listing-heading">List something good.</h2><p>Your listing will be saved as a draft for review.</p><form onSubmit={createListing}><label>What are you offering?<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required minLength={3} maxLength={120} placeholder="e.g. Freshly baked brownies"/></label><label>Category<select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} required><option value="">Choose a category</option>{categories.slice(1).map(([c]) => <option key={c} value={c}>{c}</option>)}</select></label><label>Price in naira<input type="number" min="0" value={form.price_ngn} onChange={e => setForm({ ...form, price_ngn: e.target.value })} required placeholder="e.g. 5000"/></label><label>Tell us a little more<textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required minLength={10} maxLength={3000} rows={3} placeholder="What should a buyer know?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Saving…' : 'Save draft'} <Icon name="arrow"/></button></form><small className="form-footnote">Listings go live after moderation and the ₦500 / 30-day subscription is activated.</small></section></div>}
     {toast && <div className="toast-message" role="status"><span><Icon name="check" size={17}/></span>{toast}<button onClick={() => setToast('')} aria-label="Dismiss"><Icon name="close" size={16}/></button></div>}
