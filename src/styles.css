@@ -98,3 +98,43 @@
 .admin-evidence-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.admin-evidence-links a{display:inline-flex;padding:8px 10px;border-radius:7px;background:#edf2e7;color:var(--navy);font-size:10px;font-weight:800;text-decoration:underline;text-underline-offset:2px}
 
 .dashboard-list-actions{display:flex;align-items:center;gap:14px;margin-top:3px}.dashboard-list-actions button{border:0;padding:2px 0;background:transparent;color:var(--navy);font-size:10px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}.dashboard-list-actions .danger-link{color:#a13d37}.dashboard-list-actions button:disabled{opacity:.55;cursor:wait}.dashboard-list-side{display:flex;align-items:center;gap:8px;flex-shrink:0}.existing-listing-photos{display:grid;gap:8px;margin:2px 0 14px}.existing-listing-photos>small{font-size:10px;color:#7a898d}
+
+
+/* First-visit mobile install guide */
+.install-guide-backdrop{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:18px;background:rgba(10,27,40,.58);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);animation:install-guide-fade .24s ease both}
+.install-guide{position:relative;width:min(100%,390px);padding:25px 25px 19px;overflow:hidden;border:1px solid rgba(255,255,255,.7);border-radius:26px;background:#f7f8f4;box-shadow:0 24px 80px rgba(8,25,39,.24);color:var(--navy);animation:install-guide-rise .32s cubic-bezier(.2,.8,.2,1) both}
+.install-guide-close{position:absolute;top:17px;right:17px;z-index:2;display:grid;place-items:center;width:33px;height:33px;border:1px solid #dce4db;border-radius:50%;background:#fff;color:#526575;font-size:23px;line-height:1;cursor:pointer}
+.install-guide-brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:900;letter-spacing:-.04em}
+.install-guide-brand>span:last-child>span{color:#9abf46}
+.install-guide-mark{display:grid;place-items:center;width:31px;height:31px;border-radius:9px;background:var(--navy);color:white;font-family:var(--serif);font-size:23px;line-height:1}
+.install-guide-mark>span{color:var(--lime)}
+.install-guide-kicker{margin-top:22px;color:#70863c;font-size:9px;font-weight:900;letter-spacing:.16em}
+.install-guide-visual{position:relative;display:grid;place-items:center;height:156px;margin:3px 0 3px;isolation:isolate}
+.install-guide-orbit{position:absolute;display:block;border:1px solid #dce5d0;border-radius:50%;transform:rotate(-18deg)}
+.install-guide-orbit-one{width:220px;height:120px}
+.install-guide-orbit-two{width:170px;height:145px;transform:rotate(29deg);border-style:dashed}
+.install-guide-phone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:83px;height:126px;border:4px solid #102a43;border-radius:18px;background:white;box-shadow:0 12px 24px #102a4317}
+.install-guide-phone-camera{position:absolute;top:5px;width:25px;height:4px;border-radius:8px;background:#dce4db}
+.install-guide-app-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:13px;background:var(--navy);color:#fff;font-family:var(--serif);font-size:32px;box-shadow:0 5px 12px #102a4325}
+.install-guide-app-icon>span{color:var(--lime)}
+.install-guide-phone small{font-size:9px;font-weight:800;color:var(--navy)}
+.install-guide-float{position:absolute;right:calc(50% - 91px);top:23px;display:grid;place-items:center;min-width:37px;height:37px;padding:0 7px;border:1px solid #e1e8d7;border-radius:12px;background:var(--lime);box-shadow:0 8px 20px #102a4312;font-size:20px;font-weight:900;animation:install-guide-float 3s ease-in-out infinite}
+.install-guide-browser{margin:4px 0 8px;color:#7c8b81;font-size:10px;font-weight:800;letter-spacing:.04em}
+.install-guide h2{max-width:310px;margin:0;font-family:var(--serif);font-size:30px;line-height:1.06;letter-spacing:-.055em}
+.install-guide-copy{min-height:57px;margin:12px 0 17px;color:#60717a;font-size:12px;line-height:1.7}
+.install-guide-progress{display:flex;gap:5px;margin:0 0 15px}
+.install-guide-progress span{height:4px;flex:1;border-radius:8px;background:#e0e6dc;transition:background .2s ease}
+.install-guide-progress span.active,.install-guide-progress span.complete{background:#b5d85e}
+.install-guide-native{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:12px 15px;margin:0 0 10px;border:1px solid #dce4db;border-radius:11px;background:white;color:var(--navy);font-size:12px;font-weight:900;cursor:pointer}
+.install-guide-native span{font-size:16px}
+.install-guide-actions{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.install-guide-back,.install-guide-next{display:flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:12px 15px;border-radius:11px;font-size:11px;font-weight:900;cursor:pointer}
+.install-guide-back{border:1px solid #dce4db;background:transparent;color:#62737b}
+.install-guide-next{border:1px solid var(--navy);background:var(--navy);color:#fff}
+.install-guide-next span{color:var(--lime);font-size:16px}
+.install-guide-footnote{margin:14px 0 0;text-align:center;color:#8b9790;font-size:9px}
+@keyframes install-guide-fade{from{opacity:0}to{opacity:1}}
+@keyframes install-guide-rise{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes install-guide-float{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-5px) rotate(-3deg)}}
+@media(max-width:600px){.install-guide-backdrop{align-items:center;padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}.install-guide{padding:23px 22px 17px;border-radius:24px}.install-guide-kicker{margin-top:19px}.install-guide-visual{height:142px}.install-guide h2{font-size:28px}.install-guide-copy{font-size:11px;min-height:55px}}
+@media(prefers-reduced-motion:reduce){.install-guide-backdrop,.install-guide,.install-guide-float{animation:none!important}}

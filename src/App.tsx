@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import AdminPanel from './AdminPanel'
+import InstallGuide from './InstallGuide'
 
 const categories = [
   ['All finds', '✳'], ['Food & Drinks', '🥘'], ['Fashion & Thrift', '🧥'], ['Electronics', '🎧'],
@@ -457,6 +458,7 @@ export default function App() {
   }
 
   return <div className="app-shell">
+    <InstallGuide />
     <div className="announcement"><span className="announcement-dot" /> YOUR CAMPUS, YOUR COMMUNITY. <span>Made for LCU students.</span><b>↗</b></div>
     <header className="site-header">
       <a className="brand" href="#" onClick={() => { setCategory('All finds'); setSearch('') }}><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></a>
