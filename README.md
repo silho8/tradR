@@ -43,7 +43,7 @@ Before testing, configure `FLW_SECRET_KEY`, `FLW_SECRET_HASH`, and `TRADR_APP_UR
 
 ## Admin moderation
 
-Signed-in users see an Admin entry point, but all data and actions are protected by the `admin-moderation` Edge Function. It validates the user's trusted `app_metadata.role === "admin"` claim server-side before reading review queues or changing shop, listing, or seller-report status. Do not grant admin privileges through editable user metadata. Grant the role only to trusted maintainers from the Supabase Auth user administration interface, then refresh the user's session so the claim is present.
+Signed-in users with the trusted admin app-metadata claim see an Admin entry point, and all data and actions are protected by the `admin-moderation` Edge Function. It validates the user's trusted `app_metadata.role === "admin"` claim server-side before reading review queues or changing shop, listing, or seller-report status. Do not grant admin privileges through editable user metadata. Grant the role only to trusted maintainers from the Supabase Auth user administration interface, then refresh the user's session so the claim is present.
 
 The moderation desk supports shop approval/rejection, listing approval/rejection, and buyer-safety report triage. Report evidence is private; the admin function issues short-lived signed preview URLs. Rejection reasons are not yet persisted for sellers, and an audit log of moderator actions is a follow-up before a wider public launch. The admin screen and function need a real authenticated admin-account smoke test before production launch.
 

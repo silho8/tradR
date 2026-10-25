@@ -87,7 +87,7 @@ export default function App() {
   const [paymentReturn, setPaymentReturn] = useState<PaymentReturn | null>(null)
   const [paymentRetry, setPaymentRetry] = useState(0)
   const [authReady, setAuthReady] = useState(false)
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
+  const [user, setUser] = useState<{ id: string; email?: string; role?: string } | null>(null)
   const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -111,11 +111,11 @@ export default function App() {
     if (!db) { setAuthReady(true); return }
     db.auth.getSession().then(({ data }) => {
       const u = data.session?.user
-      if (u) setUser({ id: u.id, email: u.email })
+      if (u) setUser({ id: u.id, email: u.email, role: typeof u.app_metadata?.role === 'string' ? u.app_metadata.role : undefined })
       setAuthReady(true)
     }).catch(() => setAuthReady(true))
     const { data } = db.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null)
+      setUser(session?.user ? { id: session.user.id, email: session.user.email, role: typeof session.user.app_metadata?.role === 'string' ? session.user.app_metadata.role : undefined } : null)
       setAuthReady(true)
     })
     return () => data.subscription.unsubscribe()
@@ -414,7 +414,7 @@ export default function App() {
       <a className="brand" href="#" onClick={() => { setCategory('All finds'); setSearch('') }}><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></a>
       <div className="header-location"><Icon name="pin" size={17}/><span><b>Lead City University</b><small>Ibadan, Nigeria</small></span><span className="chevron">⌄</span></div>
       <label className="header-search"><Icon name="search" size={18}/><input placeholder="Find anything on campus..." value={search} onChange={e => setSearch(e.target.value)} aria-label="Search marketplace"/><kbd>⌘ K</kbd></label>
-      <nav className="header-actions"><button className="nav-link" onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}>Explore</button><button className="nav-link" onClick={() => setToast(favorites.length ? favorites.length + ' finds saved.' : 'Tap a heart to save a find.')}>Saved <sup>{favorites.length || ''}</sup></button>{user ? <><button className="nav-link" onClick={() => void openDashboard()}>My shop</button><button className="nav-link" onClick={() => setAdminOpen(true)}>Admin</button><button className="login-button" onClick={async () => { await db?.auth.signOut(); setUser(null); setToast('Signed out.') }}>{(user.email?.[0] ?? 'U').toUpperCase()} · Sign out</button></> : <button className="login-button" onClick={() => { setAuthMode('signin'); setAuthOpen(true) }}>Log in</button>}<button className="sell-button" onClick={() => user ? setListingOpen(true) : setAuthOpen(true)}><Icon name="plus" size={17}/> Sell something</button></nav>
+      <nav className="header-actions"><button className="nav-link" onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}>Explore</button><button className="nav-link" onClick={() => setToast(favorites.length ? favorites.length + ' finds saved.' : 'Tap a heart to save a find.')}>Saved <sup>{favorites.length || ''}</sup></button>{user ? <><button className="nav-link" onClick={() => void openDashboard()}>My shop</button>{user.role === 'admin' && <button className="nav-link" onClick={() => setAdminOpen(true)}>Admin</button>}<button className="login-button" onClick={async () => { await db?.auth.signOut(); setUser(null); setToast('Signed out.') }}>{(user.email?.[0] ?? 'U').toUpperCase()} · Sign out</button></> : <button className="login-button" onClick={() => { setAuthMode('signin'); setAuthOpen(true) }}>Log in</button>}<button className="sell-button" onClick={() => user ? setListingOpen(true) : setAuthOpen(true)}><Icon name="plus" size={17}/> Sell something</button></nav>
     </header>
 
     <main>
