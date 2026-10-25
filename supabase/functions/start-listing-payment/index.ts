@@ -15,6 +15,13 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return respond({ error: "Method not allowed." }, 405);
 
+  // Payments stay disabled unless explicitly enabled after Flutterwave approves tradR.
+  if (Deno.env.get("TRADR_PAYMENTS_ENABLED") !== "true") {
+    return respond({
+      error: "Listing payments are temporarily unavailable while tradR completes payment-provider approval. You can prepare your shop and listings; activation will open once payments are approved.",
+    }, 503);
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const flutterwaveKey = Deno.env.get("FLW_SECRET_KEY");
