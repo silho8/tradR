@@ -59,3 +59,9 @@ The complete current client-facing schema type snapshot is at `src/types/databas
 ## Remaining blocker
 
 The local machine did not have the Supabase CLI or PostgreSQL dump tools available during the audit. An attempt to invoke the CLI through npm did not return a version, so no schema dump was produced. Continue with a supported CLI installation or an isolated catalog-driven reconstruction. Do not add a partial or speculative baseline merely to make migration counts match.
+
+## Reconstructed catalog snapshot
+
+A current-state SQL catalog snapshot is available at `supabase/recovery/live_schema_snapshot.sql`. It captures the eight public application tables, constraints, non-constraint indexes, seven application functions, triggers, RLS enablement and policies (including custom storage policies), table grants, function grants, schema grants, and the two tradR storage bucket configurations. It deliberately excludes table data and Supabase-managed schema definitions.
+
+This snapshot is a recovery aid, **not a validated migration baseline**. The local machine has no `psql` or `pg_dump` executable, and Docker is installed but the current user cannot access the Docker socket. Therefore the snapshot has not been applied to an isolated database. The original two migrations should still be restored if a backup is available; otherwise, validate a reconstructed baseline in a disposable Supabase-compatible environment before using it for fresh deployments.
