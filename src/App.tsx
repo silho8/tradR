@@ -14,7 +14,7 @@ const images = [
   'photo-1473093295043-cdd812d0e601','photo-1455390582262-044cdead277a','photo-1542291026-7eec264c27ff',
   'photo-1534528741775-53994a69daeb','photo-1496181133206-80ce9b88a853'
 ]
-const demoListings: Listing[] = [
+const demoListings: Listing[] = ([
   ['Clean girl knotless braids','Beauty & Hair',12000,'Tomi Hair Studio','Neat, lightweight braids with a clean finish. Book your slot before the weekend.'],
   ['Vintage denim jacket','Fashion & Thrift',8500,'Second Story','A really good thrift find. Size M, great condition, ready for pickup on campus.'],
   ['Your new everyday headphones','Electronics',18500,'Plug Point LCU','Wireless headphones with a full sound and long battery life. Test before you buy.'],
@@ -23,7 +23,7 @@ const demoListings: Listing[] = [
   ['Clean sneakers, no stress','Laundry & Cleaning',3000,'FreshStep Care','Deep clean for your favourite kicks. Drop off in the morning, collect same day.'],
   ['Portraits that feel like you','Other Services',10000,'Frame by Feyi','Natural-light portraits for birthdays, graduation shoots and your next profile picture.'],
   ['Laptop setup & quick fixes','Tech Services',5000,'Byte Buddy','Windows setup, software installs and laptop troubleshooting without the runaround.']
-] as const).map((item, i) => ({ id: 'demo-' + i, title: item[0], category: item[1], price_ngn: item[2], vendor: { shop_name: item[3], whatsapp_number: '2348012345678' }, description: item[4], image_urls: ['https://images.unsplash.com/' + images[i] + '?auto=format&fit=crop&w=900&q=80'], created_at: new Date(Date.now() - i * 100000).toISOString() }))
+] as const).map((item, i) => ({ id: 'demo-' + i, title: item[0], category: item[1], price_ngn: item[2], vendor: { shop_name: item[3], whatsapp_number: '' }, description: item[4], image_urls: ['https://images.unsplash.com/' + images[i] + '?auto=format&fit=crop&w=900&q=80'], created_at: new Date(Date.now() - i * 100000).toISOString() }))
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
@@ -51,6 +51,10 @@ export default function App() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [authOpen, setAuthOpen] = useState(false)
   const [listingOpen, setListingOpen] = useState(false)
+  const [vendorOnboardingOpen, setVendorOnboardingOpen] = useState(false)
+  const [shopName, setShopName] = useState('')
+  const [shopBio, setShopBio] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [selected, setSelected] = useState<Listing | null>(null)
   const [toast, setToast] = useState('')
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
@@ -67,6 +71,7 @@ export default function App() {
       if (!db) return demoListings
       const { data, error } = await db.from('listings').select('id,title,description,category,price_ngn,image_urls,created_at,vendor:vendors(shop_name,whatsapp_number)').eq('status', 'published').eq('moderation_status', 'approved').gt('visible_until', new Date().toISOString()).order('created_at', { ascending: false }).limit(24)
       if (error) throw error
+      if (!data?.length && import.meta.env.DEV) return demoListings
       return (data ?? []) as unknown as Listing[]
     }
   })
@@ -112,7 +117,7 @@ export default function App() {
     try {
       const { data: vendor, error: vendorError } = await db.from('vendors').select('id').eq('profile_id', user.id).maybeSingle()
       if (vendorError) throw vendorError
-      if (!vendor) { setToast('Vendor onboarding is coming next.'); return }
+      if (!vendor) { setListingOpen(false); setVendorOnboardingOpen(true); return }
       const { error } = await db.from('listings').insert({ ...parsed.data, vendor_id: vendor.id, status: 'draft' })
       if (error) throw error
       setToast('Draft saved for review and subscription activation.')
@@ -123,7 +128,29 @@ export default function App() {
   }
 
   const img = (l: Listing) => l.image_urls?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80'
-  const closeModal = () => { setAuthOpen(false); setListingOpen(false); setSelected(null) }
+  const closeModal = () => { setAuthOpen(false); setListingOpen(false); setVendorOnboardingOpen(false); setSelected(null) }
+
+  async function createVendor(e: FormEvent) {
+    e.preventDefault()
+    if (!db || !user) { setVendorOnboardingOpen(false); setAuthOpen(true); return }
+    const digits = whatsapp.replace(/\D/g, '')
+    const normalized = digits.startsWith('234') ? digits : digits.startsWith('0') ? '234' + digits.slice(1) : '234' + digits
+    if (!/^234[0-9]{10}$/.test(normalized)) { setToast('Enter a valid Nigerian number, e.g. 08012345678.'); return }
+    if (shopName.trim().length < 2) { setToast('Your shop name needs at least 2 characters.'); return }
+    setBusy(true)
+    try {
+      const { data: profile } = await db.from('profiles').select('id').eq('id', user.id).maybeSingle()
+      if (!profile) {
+        const { error: profileError } = await db.from('profiles').insert({ id: user.id, display_name: name.trim() || email.split('@')[0] || 'LCU Student' })
+        if (profileError) throw profileError
+      }
+      const { error } = await db.from('vendors').insert({ profile_id: user.id, shop_name: shopName.trim(), bio: shopBio.trim(), whatsapp_number: normalized })
+      if (error) throw error
+      setVendorOnboardingOpen(false)
+      setListingOpen(true)
+      setToast('Shop profile submitted for approval. You can prepare your first draft.')
+    } catch (err) { setToast(err instanceof Error ? err.message : 'Could not create your shop profile.') } finally { setBusy(false) }
+  }
 
   return <div className="app-shell">
     <div className="announcement"><span className="announcement-dot" /> YOUR CAMPUS, YOUR COMMUNITY. <span>Made for LCU students.</span><b>↗</b></div>
@@ -149,7 +176,7 @@ export default function App() {
       <section className="marketplace-section" id="marketplace"><div className="marketplace-heading"><div><div className="eyebrow"><span>✳</span> THE MARKETPLACE</div><h2>Good stuff, <em>found.</em></h2><p>The things you need, from people just around the corner.</p></div><button className="outline-button" onClick={() => { setCategory('All finds'); setSearch(''); setSort('latest') }}>See everything <Icon name="arrow" size={17}/></button></div>
         <div className="market-toolbar"><div className="results-count"><span/> {query.isLoading ? 'Finding your next thing…' : listings.length + ' finds to fall for'} <i>/ at Lead City</i></div><div className="toolbar-actions"><label htmlFor="sort">Sort by</label><select id="sort" value={sort} onChange={e => setSort(e.target.value)}><option value="latest">Latest finds</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select><button className="filter-button" onClick={() => setToast('Choose a category above to narrow your finds.')}><Icon name="sliders" size={17}/> Filters</button></div></div>
         {query.isError && <div className="inline-notice">We couldn’t reach the live marketplace. <button onClick={() => query.refetch()}>Try again</button></div>}
-        {query.isLoading ? <div className="listing-grid">{[1,2,3,4].map(n => <div className="skeleton-card" key={n}><div/><span/><span/></div>)}</div> : listings.length ? <div className="listing-grid">{listings.map((l, i) => <article className="listing-card" key={l.id}><button className="listing-image-button" onClick={() => setSelected(l)} aria-label={'View ' + l.title}><img className="listing-image" src={img(l)} alt={l.title} loading={i > 3 ? 'lazy' : 'eager'}/>{i === 0 && <span className="listing-badge">CAMPUS FAVOURITE</span>}<span className="image-open"><Icon name="arrow"/></span></button><button className={favorites.includes(l.id) ? 'favorite-button is-favorite' : 'favorite-button'} onClick={() => setFavorites(old => old.includes(l.id) ? old.filter(x => x !== l.id) : [...old, l.id])} aria-label="Save listing"><Icon name="heart"/></button><div className="listing-meta"><span>{l.category}</span><b>✳</b></div><button className="listing-title" onClick={() => setSelected(l)}>{l.title}</button><div className="listing-vendor"><span className="vendor-avatar">{(l.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span>{l.vendor?.shop_name ?? 'LCU seller'}</span><i>·</i><span>LCU</span></div><div className="listing-bottom"><strong>{money(Number(l.price_ngn))}</strong><button onClick={() => setSelected(l)} aria-label="Listing details"><Icon name="arrow"/></button></div></article>)}</div> : <div className="empty-state"><span className="empty-icon"><Icon name="search" size={25}/></span><h3>No finds just yet.</h3><p>Try another search or category. Your next favourite thing is out there.</p><button className="outline-button" onClick={() => { setSearch(''); setCategory('All finds') }}>Clear filters</button></div>}
+        {query.isLoading ? <div className="listing-grid">{[1,2,3,4].map(n => <div className="skeleton-card" key={n}><div/><span/><span/></div>)}</div> : listings.length ? <div className="listing-grid">{listings.map((l, i) => <article className="listing-card" key={l.id}><button className="listing-image-button" onClick={() => setSelected(l)} aria-label={'View ' + l.title}><img className="listing-image" src={img(l)} alt={l.title} loading={i > 3 ? 'lazy' : 'eager'}/>{i === 0 && <span className="listing-badge">{l.id.startsWith('demo-') ? 'PREVIEW SAMPLE' : 'CAMPUS FAVOURITE'}</span>}<span className="image-open"><Icon name="arrow"/></span></button><button className={favorites.includes(l.id) ? 'favorite-button is-favorite' : 'favorite-button'} onClick={() => setFavorites(old => old.includes(l.id) ? old.filter(x => x !== l.id) : [...old, l.id])} aria-label="Save listing"><Icon name="heart"/></button><div className="listing-meta"><span>{l.category}</span><b>✳</b></div><button className="listing-title" onClick={() => setSelected(l)}>{l.title}</button><div className="listing-vendor"><span className="vendor-avatar">{(l.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span>{l.vendor?.shop_name ?? 'LCU seller'}</span><i>·</i><span>LCU</span></div><div className="listing-bottom"><strong>{money(Number(l.price_ngn))}</strong><button onClick={() => setSelected(l)} aria-label="Listing details"><Icon name="arrow"/></button></div></article>)}</div> : <div className="empty-state"><span className="empty-icon"><Icon name="search" size={25}/></span><h3>No finds just yet.</h3><p>Try another search or category. Your next favourite thing is out there.</p><button className="outline-button" onClick={() => { setSearch(''); setCategory('All finds') }}>Clear filters</button></div>}
         <div className="marketplace-end"><span>THAT'S THE CAMPUS EDIT, FOR NOW.</span><b>✳</b><span>MORE GOOD THINGS COMING.</span></div>
       </section>
 
@@ -163,6 +190,8 @@ export default function App() {
     {selected && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setSelected(null) }}><section className="detail-modal" role="dialog" aria-modal="true" aria-label="Listing details"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Close"><Icon name="close"/></button><img className="detail-image" src={img(selected)} alt={selected.title}/><div className="detail-content"><span className="detail-category">{selected.category}</span><h2>{selected.title}</h2><strong className="detail-price">{money(Number(selected.price_ngn))}</strong><p>{selected.description}</p><div className="detail-seller"><span className="vendor-avatar large">{(selected.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span><b>{selected.vendor?.shop_name ?? 'LCU seller'}</b><small>Lead City University · Ibadan</small></span></div><button className="whatsapp-button" onClick={() => { const phone = selected.vendor?.whatsapp_number; if (!phone) { setToast('Seller contact is not available yet.'); return } window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent('Hi! I found "' + selected.title + '" on tradR. Is it still available?'), '_blank', 'noopener,noreferrer') }}><Icon name="message"/> Chat with seller on WhatsApp <Icon name="arrow"/></button><small className="direct-note">You’ll connect directly with the seller. Always meet safely on campus.</small></div></section></div>}
 
     {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) closeModal() }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="auth-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">COME ON IN</span><h2 id="auth-heading">{authMode === 'signup' ? 'Your people are here.' : 'Good to have you back.'}</h2><p>{authMode === 'signup' ? 'Make an account and get closer to the good stuff.' : 'Sign in to pick up where you left off.'}</p><form onSubmit={authSubmit}>{authMode === 'signup' && <label>Your name<input value={name} onChange={e => setName(e.target.value)} required minLength={2} placeholder="What should we call you?"/></label>}<label>Email address<input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" autoComplete="email"/></label><label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} placeholder="At least 8 characters" autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}/></label><button className="modal-primary" disabled={busy}>{busy ? 'One sec…' : authMode === 'signup' ? 'Create my account' : 'Log in'} <Icon name="arrow"/></button></form><div className="modal-switch">{authMode === 'signup' ? 'Already part of the crew?' : 'New around here?'} <button onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}>{authMode === 'signup' ? 'Log in' : 'Create an account'}</button></div><small className="form-footnote">Use tradR responsibly and treat fellow students with respect.</small></section></div>}
+
+    {vendorOnboardingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setVendorOnboardingOpen(false) }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="vendor-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR LITTLE CORNER OF LCU</span><h2 id="vendor-heading">Set up your shop.</h2><p>Give campus buyers a name and a way to reach you. Your shop needs approval before listings go live.</p><form onSubmit={createVendor}><label>Shop or service name<input value={shopName} onChange={e => setShopName(e.target.value)} required minLength={2} maxLength={100} placeholder="e.g. Tomi Hair Studio"/></label><label>WhatsApp number<input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} required placeholder="08012345678"/><small className="field-hint">Only shared with buyers through your listing.</small></label><label>Short bio (optional)<textarea value={shopBio} onChange={e => setShopBio(e.target.value)} maxLength={600} rows={3} placeholder="What do you sell or help people with?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Setting up…' : 'Create my shop'} <Icon name="arrow"/></button></form><small className="form-footnote">Your shop starts as pending review. We never fake payment or approval status.</small></section></div>}
 
     {listingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setListingOpen(false) }}><section className="form-modal listing-form-modal" role="dialog" aria-modal="true" aria-labelledby="listing-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">PUT IT OUT THERE</span><h2 id="listing-heading">List something good.</h2><p>Your listing will be saved as a draft for review.</p><form onSubmit={createListing}><label>What are you offering?<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required minLength={3} maxLength={120} placeholder="e.g. Freshly baked brownies"/></label><label>Category<select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} required><option value="">Choose a category</option>{categories.slice(1).map(([c]) => <option key={c} value={c}>{c}</option>)}</select></label><label>Price in naira<input type="number" min="0" value={form.price_ngn} onChange={e => setForm({ ...form, price_ngn: e.target.value })} required placeholder="e.g. 5000"/></label><label>Tell us a little more<textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required minLength={10} maxLength={3000} rows={3} placeholder="What should a buyer know?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Saving…' : 'Save draft'} <Icon name="arrow"/></button></form><small className="form-footnote">Listings go live after moderation and the ₦500 / 30-day subscription is activated.</small></section></div>}
     {toast && <div className="toast-message" role="status"><span><Icon name="check" size={17}/></span>{toast}<button onClick={() => setToast('')} aria-label="Dismiss"><Icon name="close" size={16}/></button></div>}
