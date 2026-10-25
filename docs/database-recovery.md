@@ -18,6 +18,8 @@ The remote Supabase migration history contains six versions:
 - `20261025090624` - `secure_payment_activation_rpc`
 - `20261025111658` - `seller_branding_and_buyer_reports`
 - `20261025113027` - `vendor_listing_limit`
+- `20261025121845` - `seller_reports_listing_index`
+- `20261025122107` - `seller_reports_policy_performance`
 
 The first two versions are not present in the available local Git history. Do not invent SQL and pretend it is the original migration.
 
@@ -40,6 +42,8 @@ Storage buckets:
 
 - `listing-images`: public image assets, 5 MiB limit, JPEG/PNG/WEBP/AVIF.
 - `report-evidence`: private report evidence, 5 MiB limit, JPEG/PNG/WEBP/AVIF.
+
+The two newest migrations are present locally as `supabase/migrations/20261025121845_seller_reports_listing_index.sql` and `supabase/migrations/20261025122107_seller_reports_policy_performance.sql`. They add the seller-report listing FK index and consolidate the reporter/admin SELECT policy while using scalar subqueries for JWT helpers. Both have been applied and verified on the live database.
 
 The complete current client-facing schema type snapshot is at `src/types/database.generated.ts`. It is a reference for TypeScript only and is not a substitute for SQL migrations, storage policies, grants, triggers, or function definitions.
 
