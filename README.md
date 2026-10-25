@@ -1,0 +1,31 @@
+# tradR.
+
+A mobile-first campus marketplace for Lead City University, Ibadan. Built with React, TypeScript, Vite, Tailwind CSS, Supabase, TanStack Query, Zod and vite-plugin-pwa.
+
+## Requirements
+
+- Node.js 22 or newer
+- npm
+
+## Run locally
+
+1. Install dependencies: `npm install`
+2. Set the Supabase values in `.env.local` using `.env.example` as a template.
+3. Start the development server: `npm run dev`
+4. Verify a production build: `npm run build`
+
+The local environment file is git-ignored. The frontend only uses the Supabase publishable key. Never add a service-role or secret key to client-side code.
+
+## Current scope
+
+- Responsive marketplace browse and search
+- Category filtering and price sorting
+- Listing detail modal and WhatsApp contact link
+- Email/password signup and login via Supabase Auth
+- Listing draft form guarded by auth and database RLS
+- PWA manifest and offline app-shell caching
+- Sample listings are shown when the public marketplace is empty or Supabase is not configured
+
+## Notes
+
+Listings remain drafts until moderation and a verified ₦500 / 30-day subscription activate them. Payment verification and vendor onboarding are separate backend workflows and are not simulated by the frontend.
