@@ -21,7 +21,9 @@ The local environment file is git-ignored. The frontend only uses the Supabase p
 - Responsive marketplace browse and search
 - Category filtering and price sorting
 - Listing detail modal and WhatsApp contact link
-- Email/password signup and login via Supabase Auth
+- Email/password signup and login via Supabase Auth, with account-created and email-confirmation screens
+- Shop-submission and listing-draft confirmation screens
+- Payment return screens for verified success, pending confirmation, checkout cancellation, and errors
 - Listing draft form guarded by auth and database RLS
 - PWA manifest and offline app-shell caching
 - Sample listings are shown when the public marketplace is empty or Supabase is not configured
@@ -33,6 +35,6 @@ Listings remain drafts until moderation and a verified ₦500 / 30-day subscript
 
 ## Payments (Phase 4)
 
-Flutterwave Standard checkout is initiated by the `start-listing-payment` Supabase Edge Function. The `flutterwave-webhook` function checks the webhook secret hash and verifies each transaction directly with Flutterwave before a server-only database function activates the 30-day listing subscription. The client cannot choose the charge amount or mark a payment successful.
+Flutterwave Standard checkout is initiated by the `start-listing-payment` Supabase Edge Function. The `flutterwave-webhook` function checks the webhook secret hash and verifies each transaction directly with Flutterwave before a server-only database function activates the 30-day listing subscription. The authenticated `payment-status` function checks the current user's own payment record so the return screen can show verified success, pending confirmation, cancellation, or an error without exposing payment records to other users. The client cannot choose the charge amount or mark a payment successful.
 
 Before testing, configure `FLW_SECRET_KEY`, `FLW_SECRET_HASH`, and `TRADR_APP_URL` as Supabase Edge Function secrets and set the webhook URL in Flutterwave. Follow [the test-mode setup guide](docs/flutterwave-test-mode.md). Never commit or share provider secrets.

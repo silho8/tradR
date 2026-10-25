@@ -30,6 +30,8 @@ const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 const db = url && key ? createClient(url, key) : null
 const schema = z.object({ title: z.string().trim().min(3).max(120), description: z.string().trim().min(10).max(3000), category: z.string().min(1), price_ngn: z.coerce.number().int().min(0).max(100000000000) })
 const money = (n: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n)
+type Confirmation = { kind: 'success' | 'info' | 'error'; eyebrow: string; title: string; message: string; detail?: string; primaryLabel: string; action: 'dismiss' | 'shop'; secondaryLabel?: string }
+type PaymentReturn = { txRef: string; state: 'checking' | 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'error'; listingTitle?: string; expiresAt?: string; message?: string; checkoutCancelled?: boolean }
 
 function Icon({ name, size = 19 }: { name: string; size?: number }) {
   const paths: Record<string, string> = {
@@ -61,6 +63,10 @@ export default function App() {
   const [whatsapp, setWhatsapp] = useState('')
   const [selected, setSelected] = useState<Listing | null>(null)
   const [toast, setToast] = useState('')
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
+  const [paymentReturn, setPaymentReturn] = useState<PaymentReturn | null>(null)
+  const [paymentRetry, setPaymentRetry] = useState(0)
+  const [authReady, setAuthReady] = useState(false)
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
   const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup')
   const [name, setName] = useState('')
@@ -82,16 +88,71 @@ export default function App() {
   })
 
   useEffect(() => {
-    if (!db) return
-    db.auth.getSession().then(({ data }) => { const u = data.session?.user; if (u) setUser({ id: u.id, email: u.email }) })
-    const { data } = db.auth.onAuthStateChange((_event, session) => setUser(session?.user ? { id: session.user.id, email: session.user.email } : null))
+    if (!db) { setAuthReady(true); return }
+    db.auth.getSession().then(({ data }) => {
+      const u = data.session?.user
+      if (u) setUser({ id: u.id, email: u.email })
+      setAuthReady(true)
+    }).catch(() => setAuthReady(true))
+    const { data } = db.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null)
+      setAuthReady(true)
+    })
     return () => data.subscription.unsubscribe()
   }, [])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 3200); return () => window.clearTimeout(timer) }, [toast])
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('payment') === 'return') setToast('Payment returned. We are confirming it securely. Check My shop in a moment for the verified status.')
+    if (params.get('payment') !== 'return') return
+    const txRef = params.get('tx_ref') ?? ''
+    const providerStatus = (params.get('status') ?? '').toLowerCase()
+    const cancelled = providerStatus === 'cancelled' || providerStatus === 'failed'
+    setPaymentReturn({
+      txRef,
+      state: txRef ? 'checking' : 'error',
+      checkoutCancelled: cancelled,
+      message: !txRef ? 'We could not find a payment reference in the checkout return.' : cancelled ? 'Checkout returned as cancelled. We are still checking the server record in case a payment was completed.' : undefined,
+    })
+    window.history.replaceState({}, '', window.location.pathname + window.location.hash)
   }, [])
+  useEffect(() => {
+    if (!paymentReturn || !authReady || !paymentReturn.txRef) return
+    let cancelled = false
+    const txRef = paymentReturn.txRef
+    const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms))
+    async function checkPayment() {
+      if (!user) {
+        setPaymentReturn(current => current ? { ...current, state: 'error', message: 'Sign in with the same account you used to start checkout, then check this payment again.' } : current)
+        return
+      }
+      if (!db) {
+        setPaymentReturn(current => current ? { ...current, state: 'error', message: 'Payment status is unavailable because the marketplace is not connected.' } : current)
+        return
+      }
+      setPaymentReturn(current => current ? { ...current, state: 'checking', message: undefined } : current)
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { data, error } = await db.functions.invoke('payment-status', { body: { tx_ref: txRef } })
+        if (cancelled) return
+        if (error || data?.error) {
+          setPaymentReturn(current => current ? { ...current, state: 'error', message: data?.error || 'We could not check payment status. Please try again.' } : current)
+          return
+        }
+        if (data?.status === 'succeeded') {
+          setPaymentReturn(current => current ? { ...current, state: 'succeeded', listingTitle: data.listing_title, expiresAt: data.expires_at, message: undefined } : current)
+          return
+        }
+        if (data?.status === 'failed') {
+          setPaymentReturn(current => current ? { ...current, state: 'failed', listingTitle: data.listing_title, message: 'The payment was not completed successfully. You can return to My shop and try again.' } : current)
+          return
+        }
+        setPaymentReturn(current => current ? { ...current, state: 'pending', listingTitle: data?.listing_title, message: 'We have not received final confirmation yet. We are checking again automatically.' } : current)
+        if (attempt < 5) await wait(1800)
+      }
+      if (!cancelled) setPaymentReturn(current => current ? { ...current, state: current.checkoutCancelled ? 'cancelled' : 'pending', message: current.checkoutCancelled ? 'We have not verified a payment for this checkout. If you completed payment despite the cancellation message, check again before trying to pay again.' : 'Your payment is still being confirmed by the payment provider. You do not need to pay again yet. Check again shortly or open My shop to review the status.' } : current)
+    }
+    void checkPayment()
+    return () => { cancelled = true }
+  }, [paymentReturn?.txRef, authReady, user?.id, paymentRetry])
 
   const listings = useMemo(() => {
     const term = search.toLowerCase().trim()
@@ -108,17 +169,18 @@ export default function App() {
         const { data, error } = await db.auth.signUp({ email, password, options: { data: { display_name: name.trim() } } })
         if (error) throw error
         if (data.session) {
-          setToast('Account created. Welcome to tradR!')
           setAuthOpen(false)
+          setConfirmation({ kind: 'success', eyebrow: 'ACCOUNT READY', title: 'You’re in.', message: 'Your tradR account has been created. You can explore the marketplace or start setting up your shop.', primaryLabel: 'Explore tradR', action: 'dismiss' })
         } else {
-          setAuthNotice('Your signup was received. Check your inbox for a confirmation email, then return here to log in. If it does not arrive, check your spam folder.')
+          setAuthOpen(false)
           setPassword('')
+          setConfirmation({ kind: 'info', eyebrow: 'CHECK YOUR INBOX', title: 'One last step.', message: 'Your signup was received. Open the confirmation email we sent you, then come back and log in. If it does not arrive, check your spam folder.', primaryLabel: 'Back to tradR', action: 'dismiss' })
         }
       } else {
         const { error } = await db.auth.signInWithPassword({ email, password })
         if (error) throw error
-        setToast('Welcome back!')
         setAuthOpen(false)
+        setConfirmation({ kind: 'success', eyebrow: 'SIGNED IN', title: 'Welcome back.', message: 'You’re signed in and ready to continue where you left off.', primaryLabel: 'Continue to tradR', action: 'dismiss' })
       }
     } catch (err) { setAuthNotice(err instanceof Error ? err.message : 'Could not complete authentication. Please try again.') } finally { setBusy(false) }
   }
@@ -135,9 +197,9 @@ export default function App() {
       if (!vendor) { setListingOpen(false); setVendorOnboardingOpen(true); return }
       const { error } = await db.from('listings').insert({ ...parsed.data, vendor_id: vendor.id, status: 'draft' })
       if (error) throw error
-      setToast('Listing saved to My shop as a draft.')
       setListingOpen(false)
       setForm({ title: '', description: '', category: '', price_ngn: '' })
+      setConfirmation({ kind: 'success', eyebrow: 'DRAFT SAVED', title: 'It’s in your shop.', message: 'Your listing has been saved as a draft. It stays private until your shop and listing are approved and you activate it with the ₦500 / 30-day subscription.', primaryLabel: 'Open My shop', action: 'shop' })
       await query.refetch()
     } catch (err) { setToast(err instanceof Error ? err.message : 'Could not save listing.') } finally { setBusy(false) }
   }
@@ -165,7 +227,9 @@ export default function App() {
       if (error) throw error
       if (typeof data?.checkout_url !== 'string') throw new Error(data?.error || 'Payment checkout is not available yet.')
       window.location.assign(data.checkout_url)
-    } catch (err) { setToast(err instanceof Error ? err.message : 'Could not start payment.') } finally { setPaymentBusyId('') }
+    } catch (err) {
+      setConfirmation({ kind: 'error', eyebrow: 'CHECKOUT NOT STARTED', title: 'Payment didn’t start.', message: (err instanceof Error ? err.message : 'We could not start checkout.') + ' No successful payment has been confirmed. You can return to My shop and try again.', primaryLabel: 'Return to My shop', action: 'shop', secondaryLabel: 'Back to marketplace' })
+    } finally { setPaymentBusyId('') }
   }
 
   const img = (l: Listing) => l.image_urls?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80'
@@ -188,8 +252,7 @@ export default function App() {
       const { error } = await db.from('vendors').insert({ profile_id: user.id, shop_name: shopName.trim(), bio: shopBio.trim(), whatsapp_number: normalized })
       if (error) throw error
       setVendorOnboardingOpen(false)
-      setListingOpen(true)
-      setToast('Shop profile submitted for approval. You can prepare your first draft.')
+      setConfirmation({ kind: 'info', eyebrow: 'SHOP SUBMITTED', title: 'We’ve got your details.', message: 'Your shop profile is waiting for admin review. You can prepare drafts while it is being reviewed, but listings will not go live until approval and payment activation are complete.', primaryLabel: 'Open My shop', action: 'shop' })
     } catch (err) { setToast(err instanceof Error ? err.message : 'Could not create your shop profile.') } finally { setBusy(false) }
   }
 
@@ -237,6 +300,36 @@ export default function App() {
     {dashboardOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDashboardOpen(false) }}><section className="form-modal dashboard-modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-heading"><button className="modal-close" onClick={() => setDashboardOpen(false)} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR CAMPUS BUSINESS</span><h2 id="dashboard-heading">Your shop.</h2><p>{vendorStatus === 'approved' ? 'Manage your listings and activate approved ones for ₦500 per 30 days.' : 'Your shop is waiting for admin approval. You can prepare drafts while we review it.'}</p>{myListings.length ? <div className="dashboard-list">{myListings.map(item => { const active = item.status === 'published' && item.visible_until && Date.parse(item.visible_until) > Date.now(); const ready = item.moderation_status === 'approved' && vendorStatus === 'approved'; return <div className="dashboard-list-item" key={item.id}><div className="dashboard-list-copy"><b>{item.title}</b><small>{active ? 'Active until ' + new Date(item.visible_until as string).toLocaleDateString('en-NG') : item.moderation_status === 'approved' ? 'Approved · ready for subscription' : 'Awaiting listing review'}</small></div>{active ? <span className="dashboard-status">ACTIVE</span> : ready ? <button className="dashboard-pay-button" disabled={paymentBusyId === item.id} onClick={() => void startListingPayment(item.id)}>{paymentBusyId === item.id ? 'Opening…' : 'Pay ₦500'} <Icon name="arrow" size={15}/></button> : <span className="dashboard-status pending">IN REVIEW</span>}</div> })}</div> : <div className="dashboard-empty"><b>No listings yet.</b><span>Start with a draft, then pay once it passes review.</span><button className="modal-primary" onClick={() => { setDashboardOpen(false); setListingOpen(true) }}>Create a listing <Icon name="arrow"/></button></div>}<small className="form-footnote">Payments are verified by Flutterwave on the server. A redirect alone never activates a listing.</small></section></div>}
 
     {listingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setListingOpen(false) }}><section className="form-modal listing-form-modal" role="dialog" aria-modal="true" aria-labelledby="listing-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">PUT IT OUT THERE</span><h2 id="listing-heading">List something good.</h2><p>Save your details first. Your listing stays private until your shop and listing are approved and you activate it for ₦500 per 30 days.</p><form onSubmit={createListing}><label>What are you offering?<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required minLength={3} maxLength={120} placeholder="e.g. Freshly baked brownies"/></label><label>Category<select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} required><option value="">Choose a category</option>{categories.slice(1).map(([c]) => <option key={c} value={c}>{c}</option>)}</select></label><label>Price in naira<input type="number" min="0" value={form.price_ngn} onChange={e => setForm({ ...form, price_ngn: e.target.value })} required placeholder="e.g. 5000"/></label><label>Tell us a little more<textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required minLength={10} maxLength={3000} rows={3} placeholder="What should a buyer know?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Saving…' : 'Save listing'} <Icon name="arrow"/></button></form><small className="form-footnote">You can find your saved draft in My shop. It will not appear in the marketplace until approval and subscription activation are complete.</small></section></div>}
-    {toast && <div className="toast-message" role="status"><span><Icon name="check" size={17}/></span>{toast}<button onClick={() => setToast('')} aria-label="Dismiss"><Icon name="close" size={16}/></button></div>}
+    {paymentReturn && !authOpen && <div className="confirmation-page" role="dialog" aria-modal="true" aria-labelledby="payment-confirmation-title">
+      <div className="confirmation-brand"><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></div>
+      <div className={`confirmation-icon ${paymentReturn.state}`}>{paymentReturn.state === 'succeeded' ? <Icon name="check" size={30}/> : paymentReturn.state === 'checking' ? <span className="confirmation-spinner"/> : paymentReturn.state === 'pending' ? <span className="confirmation-wait">…</span> : <Icon name="close" size={28}/>}</div>
+      <span className="eyebrow">{paymentReturn.state === 'succeeded' ? 'PAYMENT CONFIRMED' : paymentReturn.state === 'checking' ? 'SECURE CHECK IN PROGRESS' : paymentReturn.state === 'pending' ? 'AWAITING CONFIRMATION' : paymentReturn.state === 'cancelled' ? 'CHECKOUT CANCELLED' : paymentReturn.state === 'failed' ? 'PAYMENT NOT COMPLETED' : 'PAYMENT STATUS UNAVAILABLE'}</span>
+      <h1 id="payment-confirmation-title">{paymentReturn.state === 'succeeded' ? 'You’re all set.' : paymentReturn.state === 'checking' ? 'Checking your payment.' : paymentReturn.state === 'pending' ? 'Almost there.' : paymentReturn.state === 'cancelled' ? 'No worries.' : paymentReturn.state === 'failed' ? 'Payment didn’t go through.' : 'We couldn’t confirm it yet.'}</h1>
+      <p>{paymentReturn.message || (paymentReturn.state === 'succeeded' ? 'Your ₦500 subscription has been verified and your listing is active for 30 days.' : paymentReturn.state === 'checking' ? 'We’re checking the payment directly against our server records. Please keep this page open for a moment.' : 'We’re checking the payment status.')}</p>
+      {paymentReturn.listingTitle && <div className="confirmation-detail"><span>LISTING</span><strong>{paymentReturn.listingTitle}</strong></div>}
+      {paymentReturn.state === 'succeeded' && paymentReturn.expiresAt && <div className="confirmation-detail"><span>ACTIVE UNTIL</span><strong>{new Date(paymentReturn.expiresAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}</strong></div>}
+      {paymentReturn.txRef && <small className="confirmation-reference">Reference ending · {paymentReturn.txRef.slice(-8)}</small>}
+      <div className="confirmation-actions">
+        {paymentReturn.state === 'checking' ? <button className="modal-primary" disabled>Checking securely… <span className="confirmation-spinner small"/></button> : paymentReturn.state === 'pending' || paymentReturn.state === 'cancelled' ? <button className="modal-primary" onClick={() => setPaymentRetry(value => value + 1)}>Check payment again <Icon name="arrow"/></button> : paymentReturn.state === 'error' && paymentReturn.txRef ? <button className="modal-primary" onClick={() => setPaymentRetry(value => value + 1)}>Try checking again <Icon name="arrow"/></button> : <button className="modal-primary" onClick={() => { setPaymentReturn(null); void openDashboard() }}>{paymentReturn.state === 'succeeded' ? 'Open My shop' : 'Return to My shop'} <Icon name="arrow"/></button>}
+        {paymentReturn.state === 'pending' || paymentReturn.state === 'cancelled' || paymentReturn.state === 'error' ? <button className="confirmation-secondary" onClick={() => { if (!user) { setAuthMode('signin'); setAuthOpen(true) } else { setPaymentReturn(null); void openDashboard() } }}>{user ? 'Open My shop' : 'Sign in to check payment'}</button> : <button className="confirmation-secondary" onClick={() => setPaymentReturn(null)}>Back to marketplace</button>}
+      </div>
+      <small className="form-footnote">A checkout redirect alone does not count as payment. tradR only activates listings after server-side verification.</small>
+    </div>}
+
+    {confirmation && !paymentReturn && <div className="confirmation-page" role="dialog" aria-modal="true" aria-labelledby="general-confirmation-title">
+      <div className="confirmation-brand"><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></div>
+      <div className={`confirmation-icon ${confirmation.kind}`}>{confirmation.kind === 'success' ? <Icon name="check" size={30}/> : confirmation.kind === 'info' ? <span className="confirmation-wait">i</span> : <Icon name="close" size={28}/>}</div>
+      <span className="eyebrow">{confirmation.eyebrow}</span>
+      <h1 id="general-confirmation-title">{confirmation.title}</h1>
+      <p>{confirmation.message}</p>
+      {confirmation.detail && <div className="confirmation-detail"><span>DETAILS</span><strong>{confirmation.detail}</strong></div>}
+      <div className="confirmation-actions">
+        <button className="modal-primary" onClick={() => { setConfirmation(null); if (confirmation.action === 'shop') void openDashboard() }}>{confirmation.primaryLabel} <Icon name="arrow"/></button>
+        <button className="confirmation-secondary" onClick={() => setConfirmation(null)}>{confirmation.secondaryLabel || 'Back to marketplace'}</button>
+      </div>
+      <small className="form-footnote">Keep your account details safe and contact tradR support if something does not look right.</small>
+    </div>}
+
+    {toast && !paymentReturn && !confirmation && <div className="toast-message" role="status"><span><Icon name="check" size={17}/></span>{toast}<button onClick={() => setToast('')} aria-label="Dismiss"><Icon name="close" size={16}/></button></div>}
   </div>
 }
