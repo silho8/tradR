@@ -24,7 +24,9 @@ The local environment file is git-ignored. The frontend only uses the Supabase p
 - Email/password signup and login via Supabase Auth, with account-created and email-confirmation screens
 - Shop-submission and listing-draft confirmation screens
 - Payment return screens for verified success, pending confirmation, checkout cancellation, and errors
-- Listing draft form guarded by auth and database RLS
+- Listing draft form with up to four image uploads and preview/removal controls
+- Seller shop picture/logo uploads, shown beside seller names and on listing details
+- Authenticated seller reporting with up to five private evidence screenshots, reason/details, and admin-only review access
 - PWA manifest and offline app-shell caching
 - Sample listings are shown when the public marketplace is empty or Supabase is not configured
 

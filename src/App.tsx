@@ -8,7 +8,12 @@ const categories = [
   ['Beauty & Hair', '💅'], ['Books & Study Materials', '📚'], ['Tech Services', '💻'],
   ['Laundry & Cleaning', '🫧'], ['Accommodation', '🏡'], ['Other Services', '✦']
 ]
-type Listing = { id: string; title: string; description: string; category: string; price_ngn: number; image_urls: string[]; created_at: string; vendor?: { shop_name: string; whatsapp_number: string } | null }
+type Listing = { id: string; title: string; description: string; category: string; price_ngn: number; image_urls: string[]; created_at: string; vendor?: { id?: string; shop_name: string; whatsapp_number: string; logo_url?: string | null } | null }
+type VendorProfile = { id: string; shop_name: string; bio: string; whatsapp_number: string; logo_url: string | null }
+type ReportReason = 'non_delivery' | 'suspected_scam' | 'misleading_listing' | 'harassment' | 'other'
+const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
+const maxImageBytes = 5 * 1024 * 1024
+function imageExtension(file: File) { return ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' } as Record<string, string>)[file.type] || 'jpg' }
 const images = [
   'photo-1595476108010-b4d1f102b1b1','photo-1543076447-215ad9ba6923','photo-1505740420928-5e560c06d30e',
   'photo-1473093295043-cdd812d0e601','photo-1455390582262-044cdead277a','photo-1542291026-7eec264c27ff',
@@ -57,11 +62,24 @@ export default function App() {
   const [dashboardOpen, setDashboardOpen] = useState(false)
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; status: string; moderation_status: string; visible_until: string | null }>>([])
   const [vendorStatus, setVendorStatus] = useState<string | null>(null)
+  const [vendorProfile, setVendorProfile] = useState<VendorProfile | null>(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState('')
+  const [logoBusy, setLogoBusy] = useState(false)
+  const [listingFiles, setListingFiles] = useState<File[]>([])
+  const [listingPreviewUrls, setListingPreviewUrls] = useState<string[]>([])
+  const [reportTarget, setReportTarget] = useState<{ vendorId: string; vendorName: string; listingId?: string; listingTitle?: string } | null>(null)
+  const [reportReason, setReportReason] = useState<ReportReason>('non_delivery')
+  const [reportDetails, setReportDetails] = useState('')
+  const [reportFiles, setReportFiles] = useState<File[]>([])
+  const [reportPreviewUrls, setReportPreviewUrls] = useState<string[]>([])
+  const [reportBusy, setReportBusy] = useState(false)
   const [paymentBusyId, setPaymentBusyId] = useState('')
   const [shopName, setShopName] = useState('')
   const [shopBio, setShopBio] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [selected, setSelected] = useState<Listing | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [toast, setToast] = useState('')
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const [paymentReturn, setPaymentReturn] = useState<PaymentReturn | null>(null)
@@ -80,7 +98,7 @@ export default function App() {
     queryKey: ['listings'],
     queryFn: async () => {
       if (!db) return demoListings
-      const { data, error } = await db.from('listings').select('id,title,description,category,price_ngn,image_urls,created_at,vendor:vendors(shop_name,whatsapp_number)').eq('status', 'published').eq('moderation_status', 'approved').gt('visible_until', new Date().toISOString()).order('created_at', { ascending: false }).limit(24)
+      const { data, error } = await db.from('listings').select('id,title,description,category,price_ngn,image_urls,created_at,vendor:vendors(id,shop_name,whatsapp_number,logo_url)').eq('status', 'published').eq('moderation_status', 'approved').gt('visible_until', new Date().toISOString()).order('created_at', { ascending: false }).limit(24)
       if (error) throw error
       if (!data?.length && import.meta.env.DEV) return demoListings
       return (data ?? []) as unknown as Listing[]
@@ -101,6 +119,23 @@ export default function App() {
     return () => data.subscription.unsubscribe()
   }, [])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 3200); return () => window.clearTimeout(timer) }, [toast])
+  useEffect(() => {
+    const urls = listingFiles.map(file => URL.createObjectURL(file))
+    setListingPreviewUrls(urls)
+    return () => urls.forEach(url => URL.revokeObjectURL(url))
+  }, [listingFiles])
+  useEffect(() => { setSelectedImageIndex(0) }, [selected?.id])
+  useEffect(() => {
+    if (!logoFile) { setLogoPreviewUrl(''); return }
+    const preview = URL.createObjectURL(logoFile)
+    setLogoPreviewUrl(preview)
+    return () => URL.revokeObjectURL(preview)
+  }, [logoFile])
+  useEffect(() => {
+    const urls = reportFiles.map(file => URL.createObjectURL(file))
+    setReportPreviewUrls(urls)
+    return () => urls.forEach(url => URL.revokeObjectURL(url))
+  }, [reportFiles])
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('payment') !== 'return') return
@@ -185,33 +220,134 @@ export default function App() {
     } catch (err) { setAuthNotice(err instanceof Error ? err.message : 'Could not complete authentication. Please try again.') } finally { setBusy(false) }
   }
 
+  async function uploadPublicImage(file: File, folder: string) {
+    if (!db || !user) throw new Error('Sign in before uploading images.')
+    const path = `${user.id}/${folder}/${crypto.randomUUID()}.${imageExtension(file)}`
+    const { error } = await db.storage.from('listing-images').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type })
+    if (error) throw error
+    return { path, url: db.storage.from('listing-images').getPublicUrl(path).data.publicUrl }
+  }
+
+  function validateImageFiles(files: File[], maxCount: number, label: string) {
+    if (files.length > maxCount) { setToast(`Choose up to ${maxCount} ${label}.`); return false }
+    const invalid = files.find(file => !allowedImageTypes.includes(file.type) || file.size > maxImageBytes)
+    if (invalid) { setToast('Use JPG, PNG, WEBP or AVIF images up to 5 MB each.'); return false }
+    return true
+  }
+
+  function beginReport(listing: Listing) {
+    setSelected(null)
+    if (!user) {
+      setAuthMode('signin')
+      setAuthOpen(true)
+      setToast('Sign in to report a seller and attach evidence.')
+      return
+    }
+    if (!listing.vendor?.id || listing.id.startsWith('demo-')) {
+      setToast('Reports are available for live seller listings only.')
+      return
+    }
+    setReportTarget({ vendorId: listing.vendor.id, vendorName: listing.vendor.shop_name, listingId: listing.id, listingTitle: listing.title })
+    setReportReason('non_delivery')
+    setReportDetails('')
+    setReportFiles([])
+  }
+
+  async function submitSellerReport(e: FormEvent) {
+    e.preventDefault()
+    if (!db || !user || !reportTarget) { setToast('Sign in to submit a report.'); return }
+    if (reportDetails.trim().length < 20) { setToast('Please explain what happened in at least 20 characters.'); return }
+    if (!validateImageFiles(reportFiles, 5, 'evidence images')) return
+    setReportBusy(true)
+    const uploadedPaths: string[] = []
+    try {
+      const evidencePaths: string[] = []
+      for (const file of reportFiles) {
+        const path = `${user.id}/${crypto.randomUUID()}.${imageExtension(file)}`
+        const { error } = await db.storage.from('report-evidence').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type })
+        if (error) throw error
+        uploadedPaths.push(path)
+        evidencePaths.push(path)
+      }
+      const { data, error } = await db.from('seller_reports').insert({
+        reporter_id: user.id,
+        vendor_id: reportTarget.vendorId,
+        listing_id: reportTarget.listingId ?? null,
+        reason: reportReason,
+        details: reportDetails.trim(),
+        evidence_paths: evidencePaths,
+      }).select('id').single()
+      if (error) throw error
+      setReportTarget(null)
+      setReportFiles([])
+      setReportDetails('')
+      setConfirmation({ kind: 'success', eyebrow: 'REPORT RECEIVED', title: 'Thanks for speaking up.', message: 'Your report has been recorded for review. Keep any original chats, receipts and delivery details in case more information is needed.', detail: `Report reference ${data.id.slice(0, 8).toUpperCase()}`, primaryLabel: 'Back to marketplace', action: 'dismiss' })
+    } catch (err) {
+      if (uploadedPaths.length) await db.storage.from('report-evidence').remove(uploadedPaths)
+      setToast(err instanceof Error ? err.message : 'Could not submit your report. Please try again.')
+    } finally { setReportBusy(false) }
+  }
+
+  async function saveVendorLogo() {
+    if (!db || !user || !vendorProfile || !logoFile) return
+    if (!validateImageFiles([logoFile], 1, 'shop logo')) return
+    setLogoBusy(true)
+    let uploadedPath = ''
+    try {
+      const uploaded = await uploadPublicImage(logoFile, 'shop-logo')
+      uploadedPath = uploaded.path
+      const { error } = await db.from('vendors').update({ logo_url: uploaded.url }).eq('id', vendorProfile.id)
+      if (error) throw error
+      setVendorProfile({ ...vendorProfile, logo_url: uploaded.url })
+      setLogoFile(null)
+      setToast('Shop picture or logo updated.')
+      await query.refetch()
+    } catch (err) {
+      if (uploadedPath) await db.storage.from('listing-images').remove([uploadedPath])
+      setToast(err instanceof Error ? err.message : 'Could not update shop logo.')
+    } finally { setLogoBusy(false) }
+  }
+
   async function createListing(e: FormEvent) {
     e.preventDefault()
     const parsed = schema.safeParse({ ...form, price_ngn: form.price_ngn })
     if (!parsed.success) { setToast(parsed.error.issues[0]?.message ?? 'Check your listing details.'); return }
     if (!db || !user) { setListingOpen(false); setAuthOpen(true); setToast('Sign in first to create a listing.'); return }
+    if (!validateImageFiles(listingFiles, 4, 'listing images')) return
     setBusy(true)
+    const uploadedPaths: string[] = []
     try {
       const { data: vendor, error: vendorError } = await db.from('vendors').select('id').eq('profile_id', user.id).maybeSingle()
       if (vendorError) throw vendorError
       if (!vendor) { setListingOpen(false); setVendorOnboardingOpen(true); return }
-      const { error } = await db.from('listings').insert({ ...parsed.data, vendor_id: vendor.id, status: 'draft' })
+      const imageUrls: string[] = []
+      for (const file of listingFiles) {
+        const uploaded = await uploadPublicImage(file, 'listings')
+        uploadedPaths.push(uploaded.path)
+        imageUrls.push(uploaded.url)
+      }
+      const { error } = await db.from('listings').insert({ ...parsed.data, vendor_id: vendor.id, status: 'draft', image_urls: imageUrls })
       if (error) throw error
       setListingOpen(false)
       setForm({ title: '', description: '', category: '', price_ngn: '' })
-      setConfirmation({ kind: 'success', eyebrow: 'DRAFT SAVED', title: 'It’s in your shop.', message: 'Your listing has been saved as a draft. It stays private until your shop and listing are approved and you activate it with the ₦500 / 30-day subscription.', primaryLabel: 'Open My shop', action: 'shop' })
+      setListingFiles([])
+      setConfirmation({ kind: 'success', eyebrow: 'DRAFT SAVED', title: 'It’s in your shop.', message: 'Your listing and photos have been saved as a draft. It stays private until your shop and listing are approved and you activate it with the ₦500 / 30-day subscription.', primaryLabel: 'Open My shop', action: 'shop' })
       await query.refetch()
-    } catch (err) { setToast(err instanceof Error ? err.message : 'Could not save listing.') } finally { setBusy(false) }
+    } catch (err) {
+      if (uploadedPaths.length) await db.storage.from('listing-images').remove(uploadedPaths)
+      setToast(err instanceof Error ? err.message : 'Could not save listing.')
+    } finally { setBusy(false) }
   }
 
   async function openDashboard() {
     if (!db || !user) { setAuthOpen(true); return }
     setBusy(true)
     try {
-      const { data: vendor, error: vendorError } = await db.from('vendors').select('id,verification_status').eq('profile_id', user.id).maybeSingle()
+      const { data: vendor, error: vendorError } = await db.from('vendors').select('id,verification_status,shop_name,bio,whatsapp_number,logo_url').eq('profile_id', user.id).maybeSingle()
       if (vendorError) throw vendorError
       if (!vendor) { setVendorOnboardingOpen(true); setToast('Set up your shop first.'); return }
       setVendorStatus(vendor.verification_status)
+      setVendorProfile(vendor as VendorProfile)
       const { data, error } = await db.from('listings').select('id,title,status,moderation_status,visible_until').eq('vendor_id', vendor.id).order('created_at', { ascending: false })
       if (error) throw error
       setMyListings(data ?? [])
@@ -242,18 +378,26 @@ export default function App() {
     const normalized = digits.startsWith('234') ? digits : digits.startsWith('0') ? '234' + digits.slice(1) : '234' + digits
     if (!/^234[0-9]{10}$/.test(normalized)) { setToast('Enter a valid Nigerian number, e.g. 08012345678.'); return }
     if (shopName.trim().length < 2) { setToast('Your shop name needs at least 2 characters.'); return }
+    if (logoFile && !validateImageFiles([logoFile], 1, 'shop logo')) return
     setBusy(true)
+    let uploadedLogoPath = ''
     try {
       const { data: profile } = await db.from('profiles').select('id').eq('id', user.id).maybeSingle()
       if (!profile) {
         const { error: profileError } = await db.from('profiles').insert({ id: user.id, display_name: name.trim() || email.split('@')[0] || 'LCU Student' })
         if (profileError) throw profileError
       }
-      const { error } = await db.from('vendors').insert({ profile_id: user.id, shop_name: shopName.trim(), bio: shopBio.trim(), whatsapp_number: normalized })
+      const uploadedLogo = logoFile ? await uploadPublicImage(logoFile, 'shop-logo') : null
+      uploadedLogoPath = uploadedLogo?.path ?? ''
+      const { error } = await db.from('vendors').insert({ profile_id: user.id, shop_name: shopName.trim(), bio: shopBio.trim(), whatsapp_number: normalized, logo_url: uploadedLogo?.url ?? null })
       if (error) throw error
       setVendorOnboardingOpen(false)
-      setConfirmation({ kind: 'info', eyebrow: 'SHOP SUBMITTED', title: 'We’ve got your details.', message: 'Your shop profile is waiting for admin review. You can prepare drafts while it is being reviewed, but listings will not go live until approval and payment activation are complete.', primaryLabel: 'Open My shop', action: 'shop' })
-    } catch (err) { setToast(err instanceof Error ? err.message : 'Could not create your shop profile.') } finally { setBusy(false) }
+      setLogoFile(null)
+      setConfirmation({ kind: 'info', eyebrow: 'SHOP SUBMITTED', title: 'We’ve got your details.', message: 'Your shop profile and branding are saved and waiting for admin review. You can prepare drafts while it is being reviewed, but listings will not go live until approval and payment activation are complete.', primaryLabel: 'Open My shop', action: 'shop' })
+    } catch (err) {
+      if (uploadedLogoPath) await db.storage.from('listing-images').remove([uploadedLogoPath])
+      setToast(err instanceof Error ? err.message : 'Could not create your shop profile.')
+    } finally { setBusy(false) }
   }
 
   return <div className="app-shell">
@@ -280,7 +424,7 @@ export default function App() {
       <section className="marketplace-section" id="marketplace"><div className="marketplace-heading"><div><div className="eyebrow"><span>✳</span> THE MARKETPLACE</div><h2>Good stuff, <em>found.</em></h2><p>The things you need, from people just around the corner.</p></div><button className="outline-button" onClick={() => { setCategory('All finds'); setSearch(''); setSort('latest') }}>See everything <Icon name="arrow" size={17}/></button></div>
         <div className="market-toolbar"><div className="results-count"><span/> {query.isLoading ? 'Finding your next thing…' : listings.length + ' finds to fall for'} <i>/ at Lead City</i></div><div className="toolbar-actions"><label htmlFor="sort">Sort by</label><select id="sort" value={sort} onChange={e => setSort(e.target.value)}><option value="latest">Latest finds</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select><button className="filter-button" onClick={() => setToast('Choose a category above to narrow your finds.')}><Icon name="sliders" size={17}/> Filters</button></div></div>
         {query.isError && <div className="inline-notice">We couldn’t reach the live marketplace. <button onClick={() => query.refetch()}>Try again</button></div>}
-        {query.isLoading ? <div className="listing-grid">{[1,2,3,4].map(n => <div className="skeleton-card" key={n}><div/><span/><span/></div>)}</div> : listings.length ? <div className="listing-grid">{listings.map((l, i) => <article className="listing-card" key={l.id}><button className="listing-image-button" onClick={() => setSelected(l)} aria-label={'View ' + l.title}><img className="listing-image" src={img(l)} alt={l.title} loading={i > 3 ? 'lazy' : 'eager'}/>{i === 0 && <span className="listing-badge">{l.id.startsWith('demo-') ? 'PREVIEW SAMPLE' : 'CAMPUS FAVOURITE'}</span>}<span className="image-open"><Icon name="arrow"/></span></button><button className={favorites.includes(l.id) ? 'favorite-button is-favorite' : 'favorite-button'} onClick={() => setFavorites(old => old.includes(l.id) ? old.filter(x => x !== l.id) : [...old, l.id])} aria-label="Save listing"><Icon name="heart"/></button><div className="listing-meta"><span>{l.category}</span><b>✳</b></div><button className="listing-title" onClick={() => setSelected(l)}>{l.title}</button><div className="listing-vendor"><span className="vendor-avatar">{(l.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span>{l.vendor?.shop_name ?? 'LCU seller'}</span><i>·</i><span>LCU</span></div><div className="listing-bottom"><strong>{money(Number(l.price_ngn))}</strong><button onClick={() => setSelected(l)} aria-label="Listing details"><Icon name="arrow"/></button></div></article>)}</div> : <div className="empty-state"><span className="empty-icon"><Icon name="search" size={25}/></span><h3>No finds just yet.</h3><p>Try another search or category. Your next favourite thing is out there.</p><button className="outline-button" onClick={() => { setSearch(''); setCategory('All finds') }}>Clear filters</button></div>}
+        {query.isLoading ? <div className="listing-grid">{[1,2,3,4].map(n => <div className="skeleton-card" key={n}><div/><span/><span/></div>)}</div> : listings.length ? <div className="listing-grid">{listings.map((l, i) => <article className="listing-card" key={l.id}><button className="listing-image-button" onClick={() => setSelected(l)} aria-label={'View ' + l.title}><img className="listing-image" src={img(l)} alt={l.title} loading={i > 3 ? 'lazy' : 'eager'}/>{i === 0 && <span className="listing-badge">{l.id.startsWith('demo-') ? 'PREVIEW SAMPLE' : 'CAMPUS FAVOURITE'}</span>}<span className="image-open"><Icon name="arrow"/></span></button><button className={favorites.includes(l.id) ? 'favorite-button is-favorite' : 'favorite-button'} onClick={() => setFavorites(old => old.includes(l.id) ? old.filter(x => x !== l.id) : [...old, l.id])} aria-label="Save listing"><Icon name="heart"/></button><div className="listing-meta"><span>{l.category}</span><b>✳</b></div><button className="listing-title" onClick={() => setSelected(l)}>{l.title}</button><div className="listing-vendor"><span className="vendor-avatar">{l.vendor?.logo_url ? <img src={l.vendor.logo_url} alt=""/> : (l.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span>{l.vendor?.shop_name ?? 'LCU seller'}</span><i>·</i><span>LCU</span></div><div className="listing-bottom"><strong>{money(Number(l.price_ngn))}</strong><button onClick={() => setSelected(l)} aria-label="Listing details"><Icon name="arrow"/></button></div></article>)}</div> : <div className="empty-state"><span className="empty-icon"><Icon name="search" size={25}/></span><h3>No finds just yet.</h3><p>Try another search or category. Your next favourite thing is out there.</p><button className="outline-button" onClick={() => { setSearch(''); setCategory('All finds') }}>Clear filters</button></div>}
         <div className="marketplace-end"><span>THAT'S THE CAMPUS EDIT, FOR NOW.</span><b>✳</b><span>MORE GOOD THINGS COMING.</span></div>
       </section>
 
@@ -291,15 +435,17 @@ export default function App() {
     <footer className="site-footer"><a className="brand" href="#"><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></a><span className="footer-note">GOOD FINDS TRAVEL FAST.</span><span className="footer-copy">© 2026 tradR. Made for campus life.</span><button onClick={() => setToast('For safety concerns, please contact the tradR admin team.')}>Safety & support ↗</button></footer>
     <nav className="mobile-bottom-nav"><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><span>⌂</span>Home</button><button onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}><Icon name="search"/>Explore</button><button onClick={() => setToast(favorites.length ? favorites.length + ' saved finds.' : 'Tap a heart to save a find.')}><Icon name="heart"/>Saved</button>{user ? <button onClick={() => void openDashboard()}><Icon name="plus"/>My shop</button> : <button onClick={() => setAuthOpen(true)}><Icon name="plus"/>Sell</button>}</nav>
 
-    {selected && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setSelected(null) }}><section className="detail-modal" role="dialog" aria-modal="true" aria-label="Listing details"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Close"><Icon name="close"/></button><img className="detail-image" src={img(selected)} alt={selected.title}/><div className="detail-content"><span className="detail-category">{selected.category}</span><h2>{selected.title}</h2><strong className="detail-price">{money(Number(selected.price_ngn))}</strong><p>{selected.description}</p><div className="detail-seller"><span className="vendor-avatar large">{(selected.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span><b>{selected.vendor?.shop_name ?? 'LCU seller'}</b><small>Lead City University · Ibadan</small></span></div><button className="whatsapp-button" onClick={() => { const phone = selected.vendor?.whatsapp_number; if (!phone) { setToast('Seller contact is not available yet.'); return } window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent('Hi! I found "' + selected.title + '" on tradR. Is it still available?'), '_blank', 'noopener,noreferrer') }}><Icon name="message"/> Chat with seller on WhatsApp <Icon name="arrow"/></button><small className="direct-note">You’ll connect directly with the seller. Always meet safely on campus.</small></div></section></div>}
+    {selected && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setSelected(null) }}><section className="detail-modal" role="dialog" aria-modal="true" aria-label="Listing details"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Close"><Icon name="close"/></button><div className="detail-gallery"><img className="detail-image" src={selected.image_urls?.[selectedImageIndex] || img(selected)} alt={selected.title + (selected.image_urls?.length > 1 ? `, photo ${selectedImageIndex + 1}` : '')}/>{(selected.image_urls?.length ?? 0) > 1 && <div className="detail-thumbnails" aria-label="More listing photos">{selected.image_urls.map((url, index) => <button key={url} type="button" className={selectedImageIndex === index ? 'detail-thumbnail active' : 'detail-thumbnail'} onClick={() => setSelectedImageIndex(index)} aria-label={`Show photo ${index + 1}`} aria-pressed={selectedImageIndex === index}><img src={url} alt=""/></button>)}</div>}</div><div className="detail-content"><span className="detail-category">{selected.category}</span><h2>{selected.title}</h2><strong className="detail-price">{money(Number(selected.price_ngn))}</strong><p>{selected.description}</p><div className="detail-seller"><span className="vendor-avatar large">{selected.vendor?.logo_url ? <img src={selected.vendor.logo_url} alt=""/> : (selected.vendor?.shop_name?.[0] ?? 'L').toUpperCase()}</span><span><b>{selected.vendor?.shop_name ?? 'LCU seller'}</b><small>Lead City University · Ibadan</small></span></div><button className="whatsapp-button" onClick={() => { const phone = selected.vendor?.whatsapp_number; if (!phone) { setToast('Seller contact is not available yet.'); return } window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent('Hi! I found "' + selected.title + '" on tradR. Is it still available?'), '_blank', 'noopener,noreferrer') }}><Icon name="message"/> Chat with seller on WhatsApp <Icon name="arrow"/></button><small className="direct-note">You’ll connect directly with the seller. Always meet safely on campus.</small><button className="report-seller-button" onClick={() => beginReport(selected)}>Report this seller <Icon name="arrow" size={15}/></button></div></section></div>}
 
     {authOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) closeModal() }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="auth-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">COME ON IN</span><h2 id="auth-heading">{authMode === 'signup' ? 'Your people are here.' : 'Good to have you back.'}</h2><p>{authMode === 'signup' ? 'Make an account and get closer to the good stuff.' : 'Sign in to pick up where you left off.'}</p>{authNotice && <div className="auth-notice" role="status">{authNotice}</div>}<form onSubmit={authSubmit}>{authMode === 'signup' && <label>Your name<input value={name} onChange={e => setName(e.target.value)} required minLength={2} placeholder="What should we call you?"/></label>}<label>Email address<input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" autoComplete="email"/></label><label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} placeholder="At least 8 characters" autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}/></label><button className="modal-primary" disabled={busy}>{busy ? 'One sec…' : authMode === 'signup' ? 'Create my account' : 'Log in'} <Icon name="arrow"/></button></form><div className="modal-switch">{authMode === 'signup' ? 'Already part of the crew?' : 'New around here?'} <button onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setAuthNotice(''); setPassword('') }}>{authMode === 'signup' ? 'Log in' : 'Create an account'}</button></div><small className="form-footnote">Use tradR responsibly and treat fellow students with respect.</small></section></div>}
 
-    {vendorOnboardingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setVendorOnboardingOpen(false) }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="vendor-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR LITTLE CORNER OF LCU</span><h2 id="vendor-heading">Set up your shop.</h2><p>Give campus buyers a name and a way to reach you. Your shop needs approval before listings go live.</p><form onSubmit={createVendor}><label>Shop or service name<input value={shopName} onChange={e => setShopName(e.target.value)} required minLength={2} maxLength={100} placeholder="e.g. Tomi Hair Studio"/></label><label>WhatsApp number<input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} required placeholder="08012345678"/><small className="field-hint">Only shared with buyers through your listing.</small></label><label>Short bio (optional)<textarea value={shopBio} onChange={e => setShopBio(e.target.value)} maxLength={600} rows={3} placeholder="What do you sell or help people with?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Setting up…' : 'Create my shop'} <Icon name="arrow"/></button></form><small className="form-footnote">Your shop starts as pending review. We never fake payment or approval status.</small></section></div>}
+    {vendorOnboardingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setVendorOnboardingOpen(false) }}><section className="form-modal" role="dialog" aria-modal="true" aria-labelledby="vendor-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR LITTLE CORNER OF LCU</span><h2 id="vendor-heading">Set up your shop.</h2><p>Give campus buyers a name and a way to reach you. Your shop needs approval before listings go live.</p><form onSubmit={createVendor}><label>Shop or service name<input value={shopName} onChange={e => setShopName(e.target.value)} required minLength={2} maxLength={100} placeholder="e.g. Tomi Hair Studio"/></label><label>WhatsApp number<input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} required placeholder="08012345678"/><small className="field-hint">Only shared with buyers through your listing.</small></label><label>Short bio (optional)<textarea value={shopBio} onChange={e => setShopBio(e.target.value)} maxLength={600} rows={3} placeholder="What do you sell or help people with?"/></label><label>Shop picture or logo (optional)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e => { const files = Array.from(e.target.files ?? []); if (validateImageFiles(files, 1, 'shop logo')) setLogoFile(files[0] ?? null); e.currentTarget.value = '' }}/><small className="field-hint">JPG, PNG, WEBP or AVIF. Maximum 5 MB.</small>{logoPreviewUrl && <img className="upload-logo-preview" src={logoPreviewUrl} alt="Shop logo preview"/>}</label><button className="modal-primary" disabled={busy}>{busy ? 'Setting up…' : 'Create my shop'} <Icon name="arrow"/></button></form><small className="form-footnote">Your shop starts as pending review. We never fake payment or approval status.</small></section></div>}
 
-    {dashboardOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDashboardOpen(false) }}><section className="form-modal dashboard-modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-heading"><button className="modal-close" onClick={() => setDashboardOpen(false)} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR CAMPUS BUSINESS</span><h2 id="dashboard-heading">Your shop.</h2><p>{vendorStatus === 'approved' ? 'Manage your listings and activate approved ones for ₦500 per 30 days.' : 'Your shop is waiting for admin approval. You can prepare drafts while we review it.'}</p>{myListings.length ? <div className="dashboard-list">{myListings.map(item => { const active = item.status === 'published' && item.visible_until && Date.parse(item.visible_until) > Date.now(); const ready = item.moderation_status === 'approved' && vendorStatus === 'approved'; return <div className="dashboard-list-item" key={item.id}><div className="dashboard-list-copy"><b>{item.title}</b><small>{active ? 'Active until ' + new Date(item.visible_until as string).toLocaleDateString('en-NG') : item.moderation_status === 'approved' ? 'Approved · ready for subscription' : 'Awaiting listing review'}</small></div>{active ? <span className="dashboard-status">ACTIVE</span> : ready ? <button className="dashboard-pay-button" disabled={paymentBusyId === item.id} onClick={() => void startListingPayment(item.id)}>{paymentBusyId === item.id ? 'Opening…' : 'Pay ₦500'} <Icon name="arrow" size={15}/></button> : <span className="dashboard-status pending">IN REVIEW</span>}</div> })}</div> : <div className="dashboard-empty"><b>No listings yet.</b><span>Start with a draft, then pay once it passes review.</span><button className="modal-primary" onClick={() => { setDashboardOpen(false); setListingOpen(true) }}>Create a listing <Icon name="arrow"/></button></div>}<small className="form-footnote">Payments are verified by Flutterwave on the server. A redirect alone never activates a listing.</small></section></div>}
+    {dashboardOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDashboardOpen(false) }}><section className="form-modal dashboard-modal" role="dialog" aria-modal="true" aria-labelledby="dashboard-heading"><button className="modal-close" onClick={() => setDashboardOpen(false)} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">YOUR CAMPUS BUSINESS</span><h2 id="dashboard-heading">Your shop.</h2><p>{vendorStatus === 'approved' ? 'Manage your listings and activate approved ones for ₦500 per 30 days.' : 'Your shop is waiting for admin approval. You can prepare drafts while we review it.'}</p><div className="shop-branding-editor"><div className="shop-branding-current"><span className="vendor-avatar large">{vendorProfile?.logo_url ? <img src={vendorProfile.logo_url} alt="Current shop picture"/> : (vendorProfile?.shop_name?.[0] ?? 'S').toUpperCase()}</span><div><b>{vendorProfile?.shop_name}</b><small>Shop picture or logo</small></div></div><label>Change shop picture or logo<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e => { const files = Array.from(e.target.files ?? []); if (validateImageFiles(files, 1, 'shop logo')) setLogoFile(files[0] ?? null); e.currentTarget.value = '' }}/><small className="field-hint">JPG, PNG, WEBP or AVIF, maximum 5 MB.</small></label>{logoPreviewUrl && <img className="upload-logo-preview" src={logoPreviewUrl} alt="New shop picture preview"/>}{logoFile && <button className="modal-primary" type="button" disabled={logoBusy} onClick={() => void saveVendorLogo()}>{logoBusy ? 'Uploading…' : 'Save shop picture'} <Icon name="arrow"/></button>}</div>{myListings.length ? <div className="dashboard-list">{myListings.map(item => { const active = item.status === 'published' && item.visible_until && Date.parse(item.visible_until) > Date.now(); const ready = item.moderation_status === 'approved' && vendorStatus === 'approved'; return <div className="dashboard-list-item" key={item.id}><div className="dashboard-list-copy"><b>{item.title}</b><small>{active ? 'Active until ' + new Date(item.visible_until as string).toLocaleDateString('en-NG') : item.moderation_status === 'approved' ? 'Approved · ready for subscription' : 'Awaiting listing review'}</small></div>{active ? <span className="dashboard-status">ACTIVE</span> : ready ? <button className="dashboard-pay-button" disabled={paymentBusyId === item.id} onClick={() => void startListingPayment(item.id)}>{paymentBusyId === item.id ? 'Opening…' : 'Pay ₦500'} <Icon name="arrow" size={15}/></button> : <span className="dashboard-status pending">IN REVIEW</span>}</div> })}</div> : <div className="dashboard-empty"><b>No listings yet.</b><span>Start with a draft, then pay once it passes review.</span><button className="modal-primary" onClick={() => { setDashboardOpen(false); setListingOpen(true) }}>Create a listing <Icon name="arrow"/></button></div>}<small className="form-footnote">Payments are verified by Flutterwave on the server. A redirect alone never activates a listing.</small></section></div>}
 
-    {listingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setListingOpen(false) }}><section className="form-modal listing-form-modal" role="dialog" aria-modal="true" aria-labelledby="listing-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">PUT IT OUT THERE</span><h2 id="listing-heading">List something good.</h2><p>Save your details first. Your listing stays private until your shop and listing are approved and you activate it for ₦500 per 30 days.</p><form onSubmit={createListing}><label>What are you offering?<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required minLength={3} maxLength={120} placeholder="e.g. Freshly baked brownies"/></label><label>Category<select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} required><option value="">Choose a category</option>{categories.slice(1).map(([c]) => <option key={c} value={c}>{c}</option>)}</select></label><label>Price in naira<input type="number" min="0" value={form.price_ngn} onChange={e => setForm({ ...form, price_ngn: e.target.value })} required placeholder="e.g. 5000"/></label><label>Tell us a little more<textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required minLength={10} maxLength={3000} rows={3} placeholder="What should a buyer know?"/></label><button className="modal-primary" disabled={busy}>{busy ? 'Saving…' : 'Save listing'} <Icon name="arrow"/></button></form><small className="form-footnote">You can find your saved draft in My shop. It will not appear in the marketplace until approval and subscription activation are complete.</small></section></div>}
+    {listingOpen && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setListingOpen(false) }}><section className="form-modal listing-form-modal" role="dialog" aria-modal="true" aria-labelledby="listing-heading"><button className="modal-close" onClick={closeModal} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">PUT IT OUT THERE</span><h2 id="listing-heading">List something good.</h2><p>Save your details first. Your listing stays private until your shop and listing are approved and you activate it for ₦500 per 30 days.</p><form onSubmit={createListing}><label>What are you offering?<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required minLength={3} maxLength={120} placeholder="e.g. Freshly baked brownies"/></label><label>Category<select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} required><option value="">Choose a category</option>{categories.slice(1).map(([c]) => <option key={c} value={c}>{c}</option>)}</select></label><label>Price in naira<input type="number" min="0" value={form.price_ngn} onChange={e => setForm({ ...form, price_ngn: e.target.value })} required placeholder="e.g. 5000"/></label><label>Tell us a little more<textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required minLength={10} maxLength={3000} rows={3} placeholder="What should a buyer know?"/></label><label>Product photos (up to 4)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={e => { const files = Array.from(e.target.files ?? []); if (validateImageFiles(files, 4, 'listing images')) setListingFiles(files); e.currentTarget.value = '' }}/><small className="field-hint">JPG, PNG, WEBP or AVIF. Up to 4 images, 5 MB each. Clear photos with the remove buttons before saving if you change your mind.</small></label>{listingPreviewUrls.length > 0 && <div className="upload-preview-grid">{listingPreviewUrls.map((url, index) => <div className="upload-preview-item" key={url}><img src={url} alt={`Listing photo ${index + 1} preview`}/><button type="button" onClick={() => setListingFiles(files => files.filter((_, fileIndex) => fileIndex !== index))} aria-label={`Remove photo ${index + 1}`}><Icon name="close" size={14}/></button></div>)}</div>}<button className="modal-primary" disabled={busy}>{busy ? 'Saving…' : 'Save listing'} <Icon name="arrow"/></button></form><small className="form-footnote">You can find your saved draft in My shop. It will not appear in the marketplace until approval and subscription activation are complete.</small></section></div>}
+    {reportTarget && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget && !reportBusy) setReportTarget(null) }}><section className="form-modal report-form-modal" role="dialog" aria-modal="true" aria-labelledby="report-heading"><button className="modal-close" onClick={() => !reportBusy && setReportTarget(null)} aria-label="Close"><Icon name="close"/></button><div className="modal-brand-mark">t<span>.</span></div><span className="eyebrow">BUYER SAFETY</span><h2 id="report-heading">Report a seller.</h2><p>Your report goes to the tradR review team, not the seller. Only you and authorized administrators can access your report and evidence.</p><div className="reporting-seller"><span className="vendor-avatar">{reportTarget.vendorName[0]?.toUpperCase() || 'S'}</span><div><b>{reportTarget.vendorName}</b><small>{reportTarget.listingTitle ? `Listing: ${reportTarget.listingTitle}` : 'Seller report'}</small></div></div><form onSubmit={submitSellerReport}><label>What happened?<select value={reportReason} onChange={e => setReportReason(e.target.value as ReportReason)} required><option value="non_delivery">Seller did not deliver</option><option value="suspected_scam">Suspected scam or fraud</option><option value="misleading_listing">Misleading product or listing</option><option value="harassment">Harassment or abusive behaviour</option><option value="other">Other concern</option></select></label><label>Explain the situation<textarea value={reportDetails} onChange={e => setReportDetails(e.target.value)} required minLength={20} maxLength={3000} rows={5} placeholder="Include dates, what was promised, what you paid, and any attempts to contact the seller."/><small className="field-hint">At least 20 characters. Be factual and include only information relevant to this report.</small></label><label>Evidence screenshots (up to 5)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={e => { const files = Array.from(e.target.files ?? []); if (validateImageFiles(files, 5, 'evidence images')) setReportFiles(files); e.currentTarget.value = '' }}/><small className="field-hint">Optional but helpful: WhatsApp chats, receipts, transfer confirmations or other screenshots. JPG, PNG, WEBP or AVIF, up to 5 MB each. Evidence is stored privately.</small></label>{reportPreviewUrls.length > 0 && <div className="upload-preview-grid">{reportPreviewUrls.map((url, index) => <div className="upload-preview-item" key={url}><img src={url} alt={`Evidence screenshot ${index + 1} preview`}/><button type="button" onClick={() => setReportFiles(files => files.filter((_, fileIndex) => fileIndex !== index))} aria-label={`Remove evidence ${index + 1}`}><Icon name="close" size={14}/></button></div>)}</div>}<button className="modal-primary" disabled={reportBusy}>{reportBusy ? 'Submitting report…' : 'Submit report securely'} <Icon name="arrow"/></button></form><small className="form-footnote">Submitting a report does not automatically suspend a seller. Keep original messages and receipts in case the review team needs to verify details.</small></section></div>}
+
     {paymentReturn && !authOpen && <div className="confirmation-page" role="dialog" aria-modal="true" aria-labelledby="payment-confirmation-title">
       <div className="confirmation-brand"><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></div>
       <div className={`confirmation-icon ${paymentReturn.state}`}>{paymentReturn.state === 'succeeded' ? <Icon name="check" size={30}/> : paymentReturn.state === 'checking' ? <span className="confirmation-spinner"/> : paymentReturn.state === 'pending' ? <span className="confirmation-wait">…</span> : <Icon name="close" size={28}/>}</div>

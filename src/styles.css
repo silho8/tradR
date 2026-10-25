@@ -34,3 +34,27 @@
 .confirmation-wait{font-family:var(--serif);font-size:38px;line-height:1}
 @keyframes confirmation-spin{to{transform:rotate(360deg)}}
 @media(max-width:600px){.confirmation-page{justify-content:flex-start;padding:95px 22px 35px}.confirmation-brand{top:21px;left:20px}.confirmation-icon{width:67px;height:67px;margin:25px 0 21px}.confirmation-page h1{font-size:40px}.confirmation-page>p{font-size:12px}.confirmation-actions{margin-top:18px}.confirmation-page>.form-footnote{font-size:9px}}
+
+/* Seller branding, listing photos, and private safety-report evidence */
+.upload-logo-preview{display:block;width:84px;height:84px;object-fit:cover;border-radius:16px;border:1px solid var(--line);margin-top:10px;background:#fff}
+.upload-preview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:10px 0 18px}
+.upload-preview-item{position:relative;aspect-ratio:1;min-width:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.upload-preview-item img{display:block;width:100%;height:100%;object-fit:cover}
+.upload-preview-item>button{position:absolute;top:5px;right:5px;display:grid;place-items:center;width:27px;height:27px;border:0;border-radius:50%;background:rgba(16,42,67,.92);color:white;cursor:pointer}
+.shop-branding-editor{display:grid;gap:12px;padding:16px;margin:17px 0;border:1px solid var(--line);border-radius:16px;background:#fbfcf8}
+.shop-branding-current{display:flex;align-items:center;gap:12px}
+.shop-branding-current>div{display:grid;gap:4px}
+.shop-branding-current b{font-size:12px}
+.shop-branding-current small{font-size:10px;color:#7a8982}
+.shop-branding-editor .modal-primary{margin:0}
+.reporting-seller{display:flex;align-items:center;gap:11px;padding:13px;margin:16px 0;border:1px solid var(--line);border-radius:13px;background:#fbfcf8}
+.reporting-seller>div{display:grid;gap:4px}
+.reporting-seller b{font-size:12px}
+.reporting-seller small{font-size:10px;color:#788780}
+.report-form-modal{max-height:min(90vh,900px);overflow:auto}
+.report-form-modal>p{font-size:12px;line-height:1.7}
+.report-form-modal .modal-primary{margin-top:8px}
+.report-seller-button{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:14px;padding:12px 0;border:0;border-top:1px solid var(--line);background:transparent;color:#a3463f;font-size:11px;font-weight:800;text-align:left;cursor:pointer}
+@media(max-width:600px){.upload-preview-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.report-form-modal{max-height:calc(100dvh - 24px);padding-bottom:25px}.shop-branding-editor{padding:12px}}
+
+.detail-gallery{display:flex;flex-direction:column;min-width:0;background:#edf0e9}.detail-gallery .detail-image{width:100%;min-width:0}.detail-thumbnails{display:flex;gap:8px;overflow-x:auto;padding:10px 14px 14px}.detail-thumbnail{flex:0 0 58px;width:58px;height:58px;padding:0;border:2px solid transparent;border-radius:9px;overflow:hidden;background:#fff;cursor:pointer}.detail-thumbnail.active{border-color:var(--lime);box-shadow:0 0 0 1px var(--navy)}.detail-thumbnail img{display:block;width:100%;height:100%;object-fit:cover}
