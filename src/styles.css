@@ -383,3 +383,21 @@
     height: 42px;
   }
 }
+
+
+/* PWA-first account access and a clearer shop destination. */
+.mobile-profile-button{display:none}
+@media(max-width:600px){
+  .site-header{justify-content:space-between}
+  .mobile-profile-button{display:flex;flex:0 0 auto;align-items:center;gap:7px;margin-left:auto;padding:5px 9px 5px 5px;border:1px solid #dfe6d9;border-radius:999px;background:#fff;color:var(--navy);font-size:10px;font-weight:800}
+  .mobile-profile-button>span{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:#edf3df;color:#526d28;font-size:12px;font-weight:900}
+  .mobile-profile-button small{font-size:10px;font-weight:800}
+  .mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:calc(6px + env(safe-area-inset-bottom));height:calc(64px + env(safe-area-inset-bottom))}
+  .mobile-bottom-nav button:last-child{margin:1px 2px;padding:5px 1px;border:1px solid #dce6ca;border-radius:11px;background:#f1f6e6;color:#526d28;font-weight:900}
+  .mobile-bottom-nav button:last-child.active{background:var(--navy);border-color:var(--navy);color:#fff}
+  .mobile-bottom-nav button:last-child.active::before{display:none}
+  .mobile-bottom-nav button:last-child svg{width:21px;height:21px}
+}
+.theme-dark .mobile-profile-button{background:#17232d;border-color:#354650;color:#e4edf1}
+.theme-dark .mobile-profile-button>span{background:#293b2b;color:#c6e58a}
+@media(max-width:600px){.theme-dark .mobile-bottom-nav button:last-child{background:#25352a;border-color:#46583b;color:#c6e58a}.theme-dark .mobile-bottom-nav button:last-child.active{background:#d5ee9b;border-color:#d5ee9b;color:#17232d}}
