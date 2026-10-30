@@ -69,9 +69,22 @@ Deno.serve(async (req: Request) => {
     if (action === "review_listing") {
       const status = body.status;
       if (status !== "approved" && status !== "rejected") return respond({ error: "Choose approved or rejected." }, 400);
-      const { data, error } = await admin.from("listings").update({ moderation_status: status, reviewed_at: new Date().toISOString(), reviewed_by: user.id }).eq("id", id).eq("moderation_status", "pending").select("id").maybeSingle();
+      const { data, error } = await admin.from("listings").update({ moderation_status: status, reviewed_at: new Date().toISOString(), reviewed_by: user.id }).eq("id", id).eq("moderation_status", "pending").select("id,title,vendor_id").maybeSingle();
       if (error) throw error;
       if (!data) return respond({ error: "This listing is no longer pending review. Refresh the queue." }, 409);
+      if (status === "approved") {
+        const { data: vendor } = await admin.from("vendors").select("profile_id").eq("id", data.vendor_id).maybeSingle();
+        if (vendor?.profile_id) {
+          try {
+            const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-listing-approval-push`, {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ user_id: vendor.profile_id, listing_id: data.id, title: "Your product is approved! 🎉", message: `“${data.title}” has passed admin review. It’s one step closer to being discovered by the LCU community.` }),
+            });
+            if (!pushResponse.ok) console.warn("Listing approved, but push delivery was unavailable:", pushResponse.status);
+          } catch (pushError) { console.warn("Listing approved, but push delivery failed:", pushError instanceof Error ? pushError.message : "unknown error"); }
+        }
+      }
       return respond({ success: true });
     }
 

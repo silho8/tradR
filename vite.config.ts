@@ -36,6 +36,7 @@ export default defineConfig({
         icons: [{ src: '/tradr-mark.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }]
       },
       workbox: {
+        importScripts: ['/push-sw.js'],
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         globIgnores: ['**/zod-*.js']
