@@ -138,8 +138,27 @@ export default function App() {
       if (error) throw error
       if (!data?.length && import.meta.env.DEV) return demoListings
       return (data ?? []) as unknown as Listing[]
-    }
+    },
+    staleTime: 0,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true
   })
+
+  useEffect(() => {
+    if (!db) return
+    const channel = db
+      .channel('marketplace-listing-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'listings' }, () => {
+        void query.refetch()
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') void query.refetch()
+      })
+
+    return () => { void db.removeChannel(channel) }
+  }, [query.refetch])
 
   const ratingsQuery = useQuery({
     queryKey: ['seller-ratings'],
