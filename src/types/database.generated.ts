@@ -1,5 +1,5 @@
 /**
- * Generated from the live tradR Supabase schema on 2026-10-25.
+ * Generated from the live tradR Supabase schema on 2026-10-27.
  * This is a client type snapshot, NOT a replacement for missing SQL migrations.
  * Regenerate after schema changes using Supabase type generation.
  */
@@ -144,6 +144,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          kind: string
+          message: string
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          kind: string
+          message: string
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          kind?: string
+          message?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
@@ -322,6 +358,105 @@ export type Database = {
           {
             foreignKeyName: "seller_reports_vendor_id_fkey"
             columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          review_text: string
+          reviewer_id: string
+          transaction_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          review_text?: string
+          reviewer_id: string
+          transaction_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          review_text?: string
+          reviewer_id?: string
+          transaction_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_reviews_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: true
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          buyer_confirmed: boolean
+          buyer_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          listing_id: string
+          seller_confirmed: boolean
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_confirmed?: boolean
+          buyer_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listing_id: string
+          seller_confirmed?: boolean
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_confirmed?: boolean
+          buyer_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listing_id?: string
+          seller_confirmed?: boolean
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_seller_id_fkey"
+            columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "vendors"
             referencedColumns: ["id"]

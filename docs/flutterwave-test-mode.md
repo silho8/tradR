@@ -1,4 +1,6 @@
-# tradR Flutterwave test-mode setup
+# Archived: tradR Flutterwave test-mode setup
+
+> **Obsolete:** tradR now uses Paystack for listing checkout. Do not configure Flutterwave secrets or webhooks for the current production integration. See [Paystack live setup](paystack-live-setup.md).
 
 The payment flow is deployed to the tradR Supabase project. It will remain unavailable until the Flutterwave test credentials and app URL are added as Supabase Edge Function secrets. Never paste these secrets into chat, frontend code, or Git.
 

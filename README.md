@@ -27,6 +27,7 @@ The local environment file is git-ignored. The frontend only uses the Supabase p
 - Listing draft form with up to four image uploads and preview/removal controls; database-enforced limit of five listing records per seller
 - Seller shop picture/logo uploads, shown beside seller names and on listing details
 - Authenticated seller reporting with up to five private evidence screenshots, reason/details, and admin-only review access
+- Persistent in-app activity notifications for shop/listing decisions, subscription state, verified handovers, and safety-report outcomes, with private read/unread state
 - PWA manifest and offline app-shell caching
 - Sample listings are shown when the public marketplace is empty or Supabase is not configured
 
@@ -35,11 +36,16 @@ The local environment file is git-ignored. The frontend only uses the Supabase p
 Listings remain drafts until moderation and a verified ₦500 / 30-day subscription activate them. Payment verification and vendor onboarding are separate backend workflows and are not simulated by the frontend.
 
 
-## Payments (Phase 4)
+## Payments (Paystack)
 
-Flutterwave Standard checkout is initiated by the `start-listing-payment` Supabase Edge Function. The `flutterwave-webhook` function checks the webhook secret hash and verifies each transaction directly with Flutterwave before a server-only database function activates the 30-day listing subscription. The authenticated `payment-status` function checks the current user's own payment record so the return screen can show verified success, pending confirmation, cancellation, or an error without exposing payment records to other users. The client cannot choose the charge amount or mark a payment successful.
+Production listing checkout uses Paystack Standard. The authenticated `start-listing-payment` Edge Function creates a ₦500 / 30-day subscription checkout only for the signed-in owner of an approved shop and approved listing. It fails closed unless `PAYSTACK_SECRET_KEY` begins with `sk_live_`. The `paystack-webhook` endpoint validates Paystack's HMAC-SHA512 signature and independently verifies the transaction amount, currency, reference, and success status before activating the subscription. The authenticated `payment-status` function only returns the signed-in user's own payment status.
 
-Before testing, configure `FLW_SECRET_KEY`, `FLW_SECRET_HASH`, and `TRADR_APP_URL` as Supabase Edge Function secrets and set the webhook URL in Flutterwave. Follow [the test-mode setup guide](docs/flutterwave-test-mode.md). Never commit or share provider secrets.
+- **Callback base URL:** `https://tradrr.store` (the transaction reference is appended automatically).
+- **Webhook URL:** `https://mmwgmgzpxzkhbrabloiq.supabase.co/functions/v1/paystack-webhook`.
+- **Frontend production flag:** `VITE_TRADR_PAYMENTS_ENABLED=true` (Vercel build-time variable).
+- **Backend guard:** checkout and webhook require a live-mode secret key. Never expose or commit provider secrets.
+
+See [Paystack live setup](docs/paystack-live-setup.md). The old Flutterwave webhook is retired and returns HTTP 410.
 
 ## Admin moderation
 

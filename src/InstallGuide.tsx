@@ -12,6 +12,7 @@ type BrowserGuide = {
   confirm: string
   menuIcon: string
   shareBased?: boolean
+  inApp?: boolean
 }
 
 const seenKey = 'tradr.install-guide.seen.v1'
@@ -19,6 +20,14 @@ const seenKey = 'tradr.install-guide.seen.v1'
 function detectBrowser(): BrowserGuide {
   const ua = navigator.userAgent
   const ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)
+  if (/Instagram|FBAN|FBAV|WhatsApp|TikTok|LinkedInApp/i.test(ua)) return {
+    name: 'In-app browser',
+    menu: 'Open this browser’s menu (look for ⋯, Share, or the menu icon).',
+    action: 'Choose “Open in browser”, “Open in Chrome”, or “Open in Safari”. The wording depends on the app.',
+    confirm: 'In Chrome or Safari, open the browser menu and choose “Install app” or “Add to Home Screen”.',
+    menuIcon: '⋯',
+    inApp: true,
+  }
   if (ios && /CriOS/i.test(ua)) return {
     name: 'Chrome on iPhone',
     menu: 'Tap the Share icon in Chrome.',
@@ -127,15 +136,24 @@ export default function InstallGuide() {
 
   async function installNow() {
     if (!installPrompt) return
-    await installPrompt.prompt()
-    await installPrompt.userChoice
-    setInstallPrompt(null)
-    closeGuide()
+    try {
+      await installPrompt.prompt()
+      await installPrompt.userChoice
+      setInstallPrompt(null)
+      closeGuide()
+    } catch {
+      setInstallPrompt(null)
+      setStep(0)
+    }
   }
 
   if (!open) return null
 
-  const steps = [
+  const steps = guide.inApp ? [
+    { label: 'Open the menu', detail: guide.menu, visual: guide.menuIcon },
+    { label: 'Switch browsers', detail: guide.action, visual: '↗' },
+    { label: 'Install tradR', detail: guide.confirm, visual: 't.' },
+  ] : [
     { label: 'Open the menu', detail: guide.menu, visual: guide.menuIcon },
     { label: 'Add tradR', detail: guide.action, visual: '＋' },
     { label: 'You’re in', detail: guide.confirm, visual: 't.' },
