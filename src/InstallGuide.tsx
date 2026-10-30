@@ -15,8 +15,6 @@ type BrowserGuide = {
   inApp?: boolean
 }
 
-const seenKey = 'tradr.install-guide.seen.v1'
-
 function detectBrowser(): BrowserGuide {
   const ua = navigator.userAgent
   const ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)
@@ -113,25 +111,32 @@ export default function InstallGuide() {
   useEffect(() => {
     const ua = navigator.userAgent
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    const installedDisplayModes = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay']
+    const isStandalone = installedDisplayModes.some(mode => window.matchMedia(`(display-mode: ${mode})`).matches) ||
       ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
     if (!isMobile || isStandalone || new URLSearchParams(window.location.search).has('payment')) return
-    try {
-      if (window.localStorage.getItem(seenKey) === '1') return
-    } catch { /* If storage is blocked, the guide can still be used for this visit. */ }
 
     const onBeforeInstall = (event: Event) => {
       event.preventDefault()
       setInstallPrompt(event as InstallPromptEvent)
     }
+    const onAppInstalled = () => {
+      setInstallPrompt(null)
+      setOpen(false)
+    }
     window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    window.addEventListener('appinstalled', onAppInstalled)
     setOpen(true)
-    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      window.removeEventListener('appinstalled', onAppInstalled)
+    }
   }, [])
 
   function closeGuide() {
+    // Dismiss only for this page visit. Show the install reminder again next time
+    // the site is opened in a browser, until it is running as an installed app.
     setOpen(false)
-    try { window.localStorage.setItem(seenKey, '1') } catch { /* Ignore blocked storage. */ }
   }
 
   async function installNow() {
