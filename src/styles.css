@@ -404,3 +404,12 @@
 
 .push-opt-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin:10px 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-soft,#f5f7f2)}.push-opt-in>div{display:grid;gap:4px}.push-opt-in b{font-size:12px}.push-opt-in small{color:var(--muted,#66766f);font-size:10px;line-height:1.5}.push-opt-in button{flex:0 0 auto;padding:8px 11px;border:0;border-radius:9px;background:var(--navy);color:#fff;font-size:10px;font-weight:800;cursor:pointer}.push-opt-in button:disabled{opacity:.55;cursor:default}
 .admin-shop-group{display:grid;gap:10px;margin-bottom:18px}.admin-shop-group-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:9px;background:#f1f5ed;color:var(--navy)}.admin-shop-group-heading b{font-size:13px}.admin-shop-group-heading span{font-size:10px;color:#687a70}.admin-actions .danger-link{border-color:#e7c8c3;background:#fff8f7;color:#a13f35}
+
+/* Keep the real install action separate from the optional manual walkthrough. */
+.install-guide-native{background:var(--navy);border-color:var(--navy);color:#fff;min-height:48px;font-size:14px}
+.install-guide-native:active{transform:scale(.99)}
+.install-guide-manual{display:block;width:100%;padding:10px 12px;margin:0 0 8px;border:0;background:transparent;color:var(--navy);font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.install-guide-status{margin:0 0 12px;padding:10px 12px;border-radius:9px;background:#f1f5f2;color:#40545b;font-size:11px;line-height:1.55;text-align:left}
+.install-guide-tutorial{margin-top:8px;padding:13px;border:1px solid #e5eae5;border-radius:12px;background:#fafbf9}
+.install-guide-step-label{margin:0;color:#60717a;font-size:10px;font-weight:900;letter-spacing:.08em}
+.install-guide-tutorial .install-guide-copy{min-height:0;margin:8px 0 12px}

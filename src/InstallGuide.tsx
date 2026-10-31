@@ -119,6 +119,8 @@ function detectBrowser(): BrowserGuide {
 export default function InstallGuide() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
+  const [tutorialOpen, setTutorialOpen] = useState(false)
+  const [nativeStatus, setNativeStatus] = useState('')
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(() => deferredInstallPrompt)
   const [isIos, setIsIos] = useState(false)
   const guide = useMemo(() => detectBrowser(), [])
@@ -132,7 +134,10 @@ export default function InstallGuide() {
     if (!isMobile || isStandalone || new URLSearchParams(window.location.search).has('payment')) return
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
 
-    const onInstallReady = () => setInstallPrompt(deferredInstallPrompt)
+    const onInstallReady = () => {
+      setInstallPrompt(deferredInstallPrompt)
+      setNativeStatus('Your browser is ready to install tradR. Tap Install tradR to continue.')
+    }
     const onAppInstalled = () => {
       deferredInstallPrompt = null
       ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
@@ -155,24 +160,32 @@ export default function InstallGuide() {
   }
 
   async function installNow() {
+    if (isIos) {
+      setNativeStatus('iPhone does not support the Android-style install popup. Use “How to install” to add tradR from Safari or Chrome’s share menu.')
+      return
+    }
     if (!installPrompt) {
-      // No native prompt is available: make every tap visibly advance the
-      // browser-specific manual installation instructions.
-      setStep(current => current < 2 ? current + 1 : 0)
+      setNativeStatus('Your browser has not provided its native install prompt yet. Make sure you opened tradrr.store directly in an updated browser, then try again. You can still install manually using the guide.')
       return
     }
     try {
-      await installPrompt.prompt()
-      await installPrompt.userChoice
+      const promptEvent = installPrompt
+      await promptEvent.prompt()
+      const choice = await promptEvent.userChoice
       deferredInstallPrompt = null
       ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
       setInstallPrompt(null)
-      closeGuide()
+      if (choice.outcome === 'accepted') {
+        setNativeStatus('tradR is being added to your device.')
+        closeGuide()
+      } else {
+        setNativeStatus('Installation was cancelled. You can tap Install tradR again if your browser offers it, or use the manual guide.')
+      }
     } catch {
       deferredInstallPrompt = null
       ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
       setInstallPrompt(null)
-      setStep(0)
+      setNativeStatus('The browser could not open its install prompt. Please use the manual installation guide.')
     }
   }
 
@@ -200,16 +213,22 @@ export default function InstallGuide() {
         <span className="install-guide-float">{steps[step].visual}</span>
       </div>
       <p className="install-guide-browser">{guide.name}</p>
-      <h2 id="install-guide-title">{step === 0 ? 'Make tradR feel like an app.' : step === 1 ? 'One tiny menu, that’s it.' : 'Your campus, one tap away.'}</h2>
-      <p className="install-guide-copy">{steps[step].detail}</p>
-      <div className="install-guide-progress" aria-label={`Step ${step + 1} of 3`}>
-        {steps.map((item, index) => <span key={item.label} className={index === step ? 'active' : index < step ? 'complete' : ''} />)}
-      </div>
-      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{installPrompt ? 'Install tradR now' : isIos ? 'Add tradR to Home Screen' : step === 0 ? 'Show install steps' : step === 1 ? 'Next install step' : 'Start again'} <span>↗</span></button>
-      <div className="install-guide-actions">
-        {step > 0 ? <button type="button" className="install-guide-back" onClick={() => setStep(value => value - 1)}>Back</button> : <button type="button" className="install-guide-back" onClick={closeGuide}>Not now</button>}
-        <button type="button" className="install-guide-next" onClick={() => step < 2 ? setStep(value => value + 1) : closeGuide()}>{step < 2 ? 'Next step' : 'Let’s explore'} <span>↗</span></button>
-      </div>
+      <h2 id="install-guide-title">Add tradR to your phone.</h2>
+      <p className="install-guide-copy">Get quicker access to the Lead City student marketplace. Install tradR on your home screen and open it like an app.</p>
+      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{isIos ? 'Add tradR to Home Screen' : 'Install tradR'} <span>↓</span></button>
+      {nativeStatus && <p className="install-guide-status" role="status">{nativeStatus}</p>}
+      <button className="install-guide-manual" type="button" onClick={() => { setTutorialOpen(value => !value); setStep(0); setNativeStatus('') }}>{tutorialOpen ? 'Hide installation guide' : 'How to install manually'}</button>
+      {tutorialOpen && <div className="install-guide-tutorial">
+        <p className="install-guide-step-label">STEP {step + 1} OF 3 · {steps[step].label}</p>
+        <p className="install-guide-copy">{steps[step].detail}</p>
+        <div className="install-guide-progress" aria-label={`Step ${step + 1} of 3`}>
+          {steps.map((item, index) => <span key={item.label} className={index === step ? 'active' : index < step ? 'complete' : ''} />)}
+        </div>
+        <div className="install-guide-actions">
+          <button type="button" className="install-guide-back" onClick={() => step > 0 ? setStep(value => value - 1) : setTutorialOpen(false)}>{step > 0 ? 'Back' : 'Close guide'}</button>
+          <button type="button" className="install-guide-next" onClick={() => step < 2 ? setStep(value => value + 1) : setTutorialOpen(false)}>{step < 2 ? 'Next step' : 'Done'} <span>↗</span></button>
+        </div>
+      </div>}
       <p className="install-guide-footnote">Free to add. No app store needed.</p>
     </section>
   </div>
