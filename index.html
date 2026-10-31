@@ -8,6 +8,14 @@
     <meta name="apple-mobile-web-app-title" content="tradR." />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#102a43" />
+    <script>
+      // Capture the browser install event before the app's module bundle loads.
+      window.addEventListener('beforeinstallprompt', function (event) {
+        event.preventDefault();
+        window.__tradrInstallPrompt = event;
+        window.dispatchEvent(new Event('tradr-install-ready'));
+      });
+    </script>
     <meta name="description" content="Find your people, find your next thing. The student marketplace for Lead City University." />
     <link rel="icon" type="image/svg+xml" href="/tradr-mark.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

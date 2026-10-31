@@ -5,7 +5,9 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
-let deferredInstallPrompt: InstallPromptEvent | null = null
+let deferredInstallPrompt: InstallPromptEvent | null = typeof window !== 'undefined'
+  ? ((window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? null)
+  : null
 
 // Capture Chrome's install event as early as the module loads. React effects can
 // otherwise subscribe after the browser has already dispatched it.
@@ -133,6 +135,7 @@ export default function InstallGuide() {
     const onInstallReady = () => setInstallPrompt(deferredInstallPrompt)
     const onAppInstalled = () => {
       deferredInstallPrompt = null
+      ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
       setInstallPrompt(null)
       setOpen(false)
     }
@@ -153,17 +156,21 @@ export default function InstallGuide() {
 
   async function installNow() {
     if (!installPrompt) {
-      setStep(1)
+      // No native prompt is available: make every tap visibly advance the
+      // browser-specific manual installation instructions.
+      setStep(current => current < 2 ? current + 1 : 0)
       return
     }
     try {
       await installPrompt.prompt()
       await installPrompt.userChoice
       deferredInstallPrompt = null
+      ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
       setInstallPrompt(null)
       closeGuide()
     } catch {
       deferredInstallPrompt = null
+      ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
       setInstallPrompt(null)
       setStep(0)
     }
@@ -198,7 +205,7 @@ export default function InstallGuide() {
       <div className="install-guide-progress" aria-label={`Step ${step + 1} of 3`}>
         {steps.map((item, index) => <span key={item.label} className={index === step ? 'active' : index < step ? 'complete' : ''} />)}
       </div>
-      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{isIos ? 'Add tradR to Home Screen' : 'Install tradR'} <span>↗</span></button>
+      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{installPrompt ? 'Install tradR now' : isIos ? 'Add tradR to Home Screen' : step === 0 ? 'Show install steps' : step === 1 ? 'Next install step' : 'Start again'} <span>↗</span></button>
       <div className="install-guide-actions">
         {step > 0 ? <button type="button" className="install-guide-back" onClick={() => setStep(value => value - 1)}>Back</button> : <button type="button" className="install-guide-back" onClick={closeGuide}>Not now</button>}
         <button type="button" className="install-guide-next" onClick={() => step < 2 ? setStep(value => value + 1) : closeGuide()}>{step < 2 ? 'Next step' : 'Let’s explore'} <span>↗</span></button>
