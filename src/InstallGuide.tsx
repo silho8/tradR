@@ -106,6 +106,7 @@ export default function InstallGuide() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null)
+  const [isIos, setIsIos] = useState(false)
   const guide = useMemo(() => detectBrowser(), [])
 
   useEffect(() => {
@@ -115,6 +116,7 @@ export default function InstallGuide() {
     const isStandalone = installedDisplayModes.some(mode => window.matchMedia(`(display-mode: ${mode})`).matches) ||
       ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
     if (!isMobile || isStandalone || new URLSearchParams(window.location.search).has('payment')) return
+    setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
 
     const onBeforeInstall = (event: Event) => {
       event.preventDefault()
@@ -140,7 +142,10 @@ export default function InstallGuide() {
   }
 
   async function installNow() {
-    if (!installPrompt) return
+    if (!installPrompt) {
+      setStep(1)
+      return
+    }
     try {
       await installPrompt.prompt()
       await installPrompt.userChoice
@@ -181,7 +186,7 @@ export default function InstallGuide() {
       <div className="install-guide-progress" aria-label={`Step ${step + 1} of 3`}>
         {steps.map((item, index) => <span key={item.label} className={index === step ? 'active' : index < step ? 'complete' : ''} />)}
       </div>
-      {installPrompt && <button className="install-guide-native" type="button" onClick={() => void installNow()}>Install tradR now <span>↗</span></button>}
+      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{installPrompt ? 'Install tradR now' : isIos ? 'Show Add to Home Screen steps' : 'How to install tradR'} <span>↗</span></button>
       <div className="install-guide-actions">
         {step > 0 ? <button type="button" className="install-guide-back" onClick={() => setStep(value => value - 1)}>Back</button> : <button type="button" className="install-guide-back" onClick={closeGuide}>Not now</button>}
         <button type="button" className="install-guide-next" onClick={() => step < 2 ? setStep(value => value + 1) : closeGuide()}>{step < 2 ? 'Next step' : 'Let’s explore'} <span>↗</span></button>
