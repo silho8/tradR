@@ -5,6 +5,18 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
+let deferredInstallPrompt: InstallPromptEvent | null = null
+
+// Capture Chrome's install event as early as the module loads. React effects can
+// otherwise subscribe after the browser has already dispatched it.
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault()
+    deferredInstallPrompt = event as InstallPromptEvent
+    window.dispatchEvent(new Event('tradr-install-ready'))
+  })
+}
+
 type BrowserGuide = {
   name: string
   menu: string
@@ -105,7 +117,7 @@ function detectBrowser(): BrowserGuide {
 export default function InstallGuide() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null)
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(() => deferredInstallPrompt)
   const [isIos, setIsIos] = useState(false)
   const guide = useMemo(() => detectBrowser(), [])
 
@@ -118,19 +130,17 @@ export default function InstallGuide() {
     if (!isMobile || isStandalone || new URLSearchParams(window.location.search).has('payment')) return
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
 
-    const onBeforeInstall = (event: Event) => {
-      event.preventDefault()
-      setInstallPrompt(event as InstallPromptEvent)
-    }
+    const onInstallReady = () => setInstallPrompt(deferredInstallPrompt)
     const onAppInstalled = () => {
+      deferredInstallPrompt = null
       setInstallPrompt(null)
       setOpen(false)
     }
-    window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    window.addEventListener('tradr-install-ready', onInstallReady)
     window.addEventListener('appinstalled', onAppInstalled)
     setOpen(true)
     return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      window.removeEventListener('tradr-install-ready', onInstallReady)
       window.removeEventListener('appinstalled', onAppInstalled)
     }
   }, [])
@@ -149,9 +159,11 @@ export default function InstallGuide() {
     try {
       await installPrompt.prompt()
       await installPrompt.userChoice
+      deferredInstallPrompt = null
       setInstallPrompt(null)
       closeGuide()
     } catch {
+      deferredInstallPrompt = null
       setInstallPrompt(null)
       setStep(0)
     }
@@ -186,7 +198,7 @@ export default function InstallGuide() {
       <div className="install-guide-progress" aria-label={`Step ${step + 1} of 3`}>
         {steps.map((item, index) => <span key={item.label} className={index === step ? 'active' : index < step ? 'complete' : ''} />)}
       </div>
-      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{installPrompt ? 'Install tradR now' : isIos ? 'Show Add to Home Screen steps' : 'How to install tradR'} <span>↗</span></button>
+      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{isIos ? 'Add tradR to Home Screen' : 'Install tradR'} <span>↗</span></button>
       <div className="install-guide-actions">
         {step > 0 ? <button type="button" className="install-guide-back" onClick={() => setStep(value => value - 1)}>Back</button> : <button type="button" className="install-guide-back" onClick={closeGuide}>Not now</button>}
         <button type="button" className="install-guide-next" onClick={() => step < 2 ? setStep(value => value + 1) : closeGuide()}>{step < 2 ? 'Next step' : 'Let’s explore'} <span>↗</span></button>
