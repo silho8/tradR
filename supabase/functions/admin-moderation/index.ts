@@ -37,12 +37,13 @@ Deno.serve(async (req: Request) => {
     const action = typeof body.action === "string" ? body.action : "load";
 
     if (action === "load") {
-      const [vendors, reports, activeListings] = await Promise.all([
+      const [vendors, reports, activeListings, dailyPushMessages] = await Promise.all([
         admin.from("vendors").select("id,shop_name,bio,whatsapp_number,verification_status,created_at,profile_id").eq("verification_status", "pending").order("created_at", { ascending: true }).limit(50),
         admin.from("seller_reports").select("id,reason,details,status,created_at,vendor_id,listing_id,evidence_paths,vendors(shop_name),listings(title)").in("status", ["pending", "reviewing"]).order("created_at", { ascending: true }).limit(50),
         admin.from("listings").select("id,title,description,category,price_ngn,image_urls,status,moderation_status,created_at,visible_until,vendor_id,vendors(shop_name,verification_status)").eq("status", "published").eq("moderation_status", "approved").gt("visible_until", new Date().toISOString()).order("created_at", { ascending: false }).limit(500),
+        admin.from("daily_push_messages").select("weekday,title,body,enabled").order("weekday", { ascending: true }),
       ]);
-      const failure = vendors.error ?? reports.error ?? activeListings.error;
+      const failure = vendors.error ?? reports.error ?? activeListings.error ?? dailyPushMessages.error;
       if (failure) throw failure;
       const reportsWithEvidence = await Promise.all((reports.data ?? []).map(async report => {
         const evidenceUrls = await Promise.all((report.evidence_paths ?? []).map(async (path: string) => {
@@ -51,7 +52,20 @@ Deno.serve(async (req: Request) => {
         }));
         return { ...report, evidence_urls: evidenceUrls.filter(Boolean) };
       }));
-      return respond({ vendors: vendors.data ?? [], reports: reportsWithEvidence, active_listings: activeListings.data ?? [] });
+      return respond({ vendors: vendors.data ?? [], reports: reportsWithEvidence, active_listings: activeListings.data ?? [], daily_push_messages: dailyPushMessages.data ?? [] });
+    }
+
+    if (action === "update_daily_push_message") {
+      const weekday = Number(body.weekday);
+      const title = typeof body.title === "string" ? body.title.trim() : "";
+      const message = typeof body.body === "string" ? body.body.trim() : "";
+      const enabled = body.enabled;
+      if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) return respond({ error: "Choose a valid day of the week." }, 400);
+      if (!title || title.length > 120 || !message || message.length > 240 || typeof enabled !== "boolean") return respond({ error: "Add a title and message within the character limits, then choose whether it is enabled." }, 400);
+      const { data, error } = await admin.from("daily_push_messages").update({ title, body: message, enabled, updated_at: new Date().toISOString() }).eq("weekday", weekday).select("weekday").maybeSingle();
+      if (error) throw error;
+      if (!data) return respond({ error: "That daily message was not found. Refresh the admin desk." }, 404);
+      return respond({ success: true });
     }
 
     const id = typeof body.id === "string" ? body.id : "";

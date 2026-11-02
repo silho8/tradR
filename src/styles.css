@@ -433,3 +433,5 @@
 .theme-dark .mobile-home-category.active{background:linear-gradient(145deg,rgba(121,153,59,.35),rgba(37,53,42,.9));border-color:rgba(174,210,107,.45)}
 .theme-dark .mobile-bottom-nav{background:rgba(23,35,45,.78);border-top-color:rgba(89,108,120,.5);box-shadow:0 -10px 34px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.06)}
 @media(prefers-reduced-transparency:reduce){.site-header,.mobile-home-search,.mobile-home-category,.mobile-bottom-nav{backdrop-filter:none;-webkit-backdrop-filter:none;background-color:var(--paper)}}
+
+.admin-push-item{display:grid;gap:10px}.admin-push-item label{display:grid;gap:6px;color:var(--navy);font-size:10px;font-weight:800}.admin-push-item input:not([type=checkbox]),.admin-push-item textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff;color:var(--ink);font:inherit;font-size:12px}.admin-push-item textarea{resize:vertical;line-height:1.5}.admin-push-item .admin-push-toggle{display:flex;align-items:center;gap:8px;font-weight:600}.admin-push-item .admin-push-toggle input{accent-color:var(--navy)}
