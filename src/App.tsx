@@ -578,9 +578,9 @@ export default function App() {
     setPushBusy(true)
     try {
       const permission = Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission
-      if (permission !== 'granted') { setToast('Allow notifications for tradR in your browser settings to receive listing updates.'); return }
+      if (permission !== 'granted') { setToast(permission === 'denied' ? 'Your browser has blocked notifications for this site. It will not let tradR show the permission prompt again unless you change that site permission.' : 'Notifications were not enabled. You can try again whenever you are ready.'); return }
       const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: decodeBase64Url(vapidPublicKey) })
+      const subscription = await registration.pushManager.getSubscription() ?? await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: decodeBase64Url(vapidPublicKey) })
       const json = subscription.toJSON()
       const keys = json.keys
       if (!json.endpoint || !keys?.p256dh || !keys?.auth) throw new Error('Your browser did not provide a valid push subscription.')
