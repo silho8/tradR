@@ -23,7 +23,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: null,
       includeAssets: ['tradr-mark.svg'],
       manifest: {
         name: 'tradR. Campus Marketplace',
