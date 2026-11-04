@@ -137,7 +137,7 @@ export default function App() {
     queryKey: ['listings'],
     queryFn: async () => {
       if (!db) return demoListings
-      const { data, error } = await db.from('listings').select('id,title,description,category,price_ngn,image_urls,created_at,vendor:vendors(id,profile_id,shop_name,whatsapp_number,logo_url)').eq('status', 'published').eq('moderation_status', 'approved').gt('visible_until', new Date().toISOString()).order('created_at', { ascending: false }).limit(24)
+      const { data, error } = await db.from('listings').select('id,title,description,category,price_ngn,image_urls,created_at,vendor:vendors(id,profile_id,shop_name,whatsapp_number,logo_url)').eq('status', 'published').eq('moderation_status', 'approved').gt('visible_until', new Date().toISOString()).order('created_at', { ascending: false }).limit(60)
       if (error) throw error
       if (!data?.length && import.meta.env.DEV) return demoListings
       return (data ?? []) as unknown as Listing[]
@@ -327,8 +327,29 @@ export default function App() {
 
   const listings = useMemo(() => {
     const term = search.toLowerCase().trim()
-    return [...(query.data ?? [])].filter((l) => (!savedOnly || favorites.includes(l.id)) && (category === 'All finds' || l.category === category) && (!term || [l.title, l.description, l.category, l.vendor?.shop_name ?? ''].some((v) => v.toLowerCase().includes(term))))
-      .sort((a, b) => sort === 'price-low' ? a.price_ngn - b.price_ngn : sort === 'price-high' ? b.price_ngn - a.price_ngn : Date.parse(b.created_at) - Date.parse(a.created_at))
+    const filtered = [...(query.data ?? [])].filter((l) => (!savedOnly || favorites.includes(l.id)) && (category === 'All finds' || l.category === category) && (!term || [l.title, l.description, l.category, l.vendor?.shop_name ?? ''].some((v) => v.toLowerCase().includes(term))))
+    if (sort === 'price-low') return filtered.sort((a, b) => a.price_ngn - b.price_ngn)
+    if (sort === 'price-high') return filtered.sort((a, b) => b.price_ngn - a.price_ngn)
+
+    // Keep recent listings prominent, but round-robin seller buckets so a batch
+    // from one shop cannot occupy the whole homepage feed.
+    const newestFirst = filtered.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+    const sellerBuckets = new Map<string, Listing[]>()
+    for (const listing of newestFirst) {
+      const sellerKey = listing.vendor?.id ?? listing.vendor?.shop_name ?? listing.id
+      const bucket = sellerBuckets.get(sellerKey) ?? []
+      bucket.push(listing)
+      sellerBuckets.set(sellerKey, bucket)
+    }
+    const mixed: Listing[] = []
+    while (sellerBuckets.size) {
+      for (const [sellerKey, bucket] of sellerBuckets) {
+        const next = bucket.shift()
+        if (next) mixed.push(next)
+        if (!bucket.length) sellerBuckets.delete(sellerKey)
+      }
+    }
+    return mixed
   }, [query.data, search, category, sort, savedOnly, favorites])
 
   async function authSubmit(e: FormEvent) {
