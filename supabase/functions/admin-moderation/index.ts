@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,9 +75,52 @@ Deno.serve(async (req: Request) => {
     if (action === "review_vendor") {
       const status = body.status;
       if (status !== "approved" && status !== "rejected") return respond({ error: "Choose approved or rejected." }, 400);
-      const { data, error } = await admin.from("vendors").update({ verification_status: status }).eq("id", id).eq("verification_status", "pending").select("id").maybeSingle();
+      const { data: vendor, error } = await admin.from("vendors").update({ verification_status: status }).eq("id", id).eq("verification_status", "pending").select("id,profile_id,shop_name").maybeSingle();
       if (error) throw error;
-      if (!data) return respond({ error: "This shop is no longer pending review. Refresh the queue." }, 409);
+      if (!vendor) return respond({ error: "This shop is no longer pending review. Refresh the queue." }, 409);
+
+      if (status === "approved") {
+        const title = "Your shop is approved! 🎉";
+        const message = `${vendor.shop_name} has been approved on tradR. You can now publish listings from My shop.`;
+        const { data: account } = await admin.auth.admin.getUserById(vendor.profile_id);
+        const { error: notificationError } = await admin.from("notifications").insert({ user_id: vendor.profile_id, kind: "shop_approved", title, message, entity_type: "vendor", entity_id: vendor.id });
+        if (notificationError) console.error("Shop approval activity notification failed:", notificationError.message);
+
+        const publicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+        const privateKey = Deno.env.get("VAPID_PRIVATE_KEY");
+        if (publicKey && privateKey) {
+          try {
+            webpush.setVapidDetails("mailto:support@tradrr.store", publicKey, privateKey);
+            const { data: subscriptions, error: subscriptionError } = await admin.from("push_subscriptions").select("id,endpoint,p256dh,auth").eq("user_id", vendor.profile_id);
+            if (subscriptionError) throw subscriptionError;
+            await Promise.all((subscriptions ?? []).map(async subscription => {
+              try {
+                await webpush.sendNotification({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } }, JSON.stringify({ title, body: message, url: "/?shop=1", tag: `shop-approved-${vendor.id}` }));
+              } catch (pushError) {
+                const code = (pushError as { statusCode?: number }).statusCode;
+                if (code === 404 || code === 410) await admin.from("push_subscriptions").delete().eq("id", subscription.id);
+                console.error("Shop approval push failed:", code ?? "unknown");
+              }
+            }));
+          } catch (pushError) { console.error("Shop approval push batch failed:", pushError instanceof Error ? pushError.message : "unknown"); }
+        }
+
+        const resendKey = Deno.env.get("RESEND_API_KEY");
+        const recipient = account.user?.email;
+        if (resendKey && recipient) {
+          try {
+            const emailResponse = await fetch("https://api.resend.com/emails", {
+              method: "POST", headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                from: "tradR. <support@tradrr.store>", to: [recipient],
+                subject: `Your shop, ${vendor.shop_name}, is approved!`,
+                html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#102a43"><div style="background:#102a43;color:#c6e28b;padding:22px;font-size:24px;font-weight:bold">tradR.</div><div style="padding:28px 22px"><h1 style="font-size:26px">Your shop is approved 🎉</h1><p>Good news! <strong>${vendor.shop_name.replace(/[&<>"']/g, (c: string) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] ?? c))}</strong> has been approved on tradR.</p><p>You can now open My shop and publish your listings to the Lead City University community.</p><p><a href="https://tradrr.store" style="display:inline-block;background:#c6e28b;color:#102a43;padding:13px 18px;text-decoration:none;font-weight:bold">Open tradR.</a></p><p style="color:#687782;font-size:13px">Need help? Reply to this email or reach us through tradR.</p></div></div>`
+              })
+            });
+            if (!emailResponse.ok) console.error("Shop approval email failed:", emailResponse.status, await emailResponse.text());
+          } catch (emailError) { console.error("Shop approval email error:", emailError instanceof Error ? emailError.message : "unknown"); }
+        } else console.warn("Shop approval email skipped: RESEND_API_KEY or account email is missing.");
+      }
       return respond({ success: true });
     }
 

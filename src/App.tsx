@@ -42,7 +42,7 @@ const money = (n: number) => new Intl.NumberFormat('en-NG', { style: 'currency',
 const paymentsEnabled = false
 const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
 function decodeBase64Url(value: string) { const padded = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4); return Uint8Array.from(atob(padded), char => char.charCodeAt(0)) }
-type Confirmation = { kind: 'success' | 'info' | 'error'; eyebrow: string; title: string; message: string; detail?: string; primaryLabel: string; action: 'dismiss' | 'shop'; secondaryLabel?: string }
+type Confirmation = { kind: 'success' | 'info' | 'error'; eyebrow: string; title: string; message: string; detail?: string; primaryLabel: string; action: 'dismiss' | 'shop'; secondaryLabel?: string; shopSubmitted?: boolean }
 type PaymentReturn = { txRef: string; state: 'checking' | 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'error'; listingTitle?: string; expiresAt?: string; subscriptionType?: 'listing' | 'shop_monthly'; message?: string; checkoutCancelled?: boolean }
 type AppNotification = { id: string; kind: string; title: string; message: string; entity_type: string | null; entity_id: string | null; read_at: string | null; created_at: string }
 
@@ -231,11 +231,14 @@ export default function App() {
   useEffect(() => {
     if (!authReady || !user) return
     const params = new URLSearchParams(window.location.search)
-    if (params.get('activity') !== '1') return
+    const openActivity = params.get('activity') === '1'
+    const openShop = params.get('shop') === '1'
+    if (!openActivity && !openShop) return
     params.delete('activity')
+    params.delete('shop')
     const queryString = params.toString()
     window.history.replaceState({}, '', window.location.pathname + (queryString ? '?' + queryString : '') + window.location.hash)
-    void openDashboard().then(() => setActivityOpen(true))
+    void openDashboard().then(() => { if (openActivity) setActivityOpen(true) })
   }, [authReady, user?.id])
   useEffect(() => {
     if (!db || !authReady || !user || user.accountType !== 'seller') return
@@ -331,16 +334,7 @@ export default function App() {
   async function authSubmit(e: FormEvent) {
     e.preventDefault()
     if (!db) { setToast('Supabase is not configured yet.'); return }
-    // Start the browser permission prompt directly from the signup/login gesture.
-    // The subscription itself is saved after authentication provides a user ID.
-    let notificationPermission: Promise<NotificationPermission> | null = null
-    if ((authMode === 'signup' || authMode === 'signin') && 'Notification' in window && Notification.permission === 'default' && 'serviceWorker' in navigator && 'PushManager' in window) {
-      try { notificationPermission = Notification.requestPermission() } catch { /* Account creation must never depend on push support. */ }
-    }
     setBusy(true)
-    if (notificationPermission) {
-      try { await notificationPermission } catch { /* Continue signup even if the browser declines the prompt. */ }
-    }
     try {
       if (authMode === 'signup') {
         const { data, error } = await db.auth.signUp({ email, password, options: { data: { display_name: name.trim(), account_type: accountType }, emailRedirectTo: 'https://www.tradrr.store/auth/confirmed' } })
@@ -523,7 +517,7 @@ export default function App() {
         setListingOpen(false)
         setForm({ title: '', description: '', category: '', price_ngn: '' })
         setListingFiles([])
-        setConfirmation({ kind: 'success', eyebrow: 'LISTING PUBLISHED', title: 'You’re live.', message: 'Your listing is now visible to the LCU community. Your shop must remain approved and covered by its free trial or ₦500 monthly subscription.', primaryLabel: 'Open My shop', action: 'shop' })
+        setConfirmation({ kind: 'success', eyebrow: 'LISTING PUBLISHED', title: 'You’re live.', message: 'Your listing is now visible to the LCU community. Your shop must remain approved and covered by its free trial or ₦500 monthly subscription.', primaryLabel: 'Open My shop', action: 'shop', shopSubmitted: true })
       }
       await query.refetch()
     } catch (err) {
@@ -881,6 +875,8 @@ export default function App() {
       <h1 id="general-confirmation-title">{confirmation.title}</h1>
       <p>{confirmation.message}</p>
       {confirmation.detail && <div className="confirmation-detail"><span>DETAILS</span><strong>{confirmation.detail}</strong></div>}
+      {confirmation.shopSubmitted && <a className="confirmation-whatsapp" href="https://wa.me/2348144364935?text=Hi%2C%20I%20just%20submitted%20my%20shop%20on%20tradR.%20Could%20you%20please%20help%20me%20with%20the%20review%3F" target="_blank" rel="noreferrer">Need a quicker follow-up? Message tradR on WhatsApp <Icon name="arrow" size={16}/></a>}
+      {user && 'Notification' in window && Notification.permission === 'default' && <button className="confirmation-notifications" type="button" disabled={pushBusy} onClick={() => void enablePushNotifications()}>{pushBusy ? 'Enabling notifications…' : 'Turn on push notifications'} <Icon name="arrow" size={16}/><small>Tap to let your browser ask for notification access. You can receive shop approval alerts here.</small></button>}
       <div className="confirmation-actions">
         <button className="modal-primary" onClick={() => { setConfirmation(null); if (confirmation.action === 'shop') void openDashboard() }}>{confirmation.primaryLabel} <Icon name="arrow"/></button>
         <button className="confirmation-secondary" onClick={() => setConfirmation(null)}>{confirmation.secondaryLabel || 'Back to marketplace'}</button>
