@@ -468,3 +468,39 @@
 .theme-dark .seller-guide-step{border-color:#354650}
 .theme-dark .seller-onboarding-note{background:#1d3027;border-color:#355342;color:#d6e7d5}
 @media(max-width:600px){.seller-starter-guide{padding:15px;margin:16px 0 18px;border-radius:12px}.seller-starter-guide h3{font-size:22px}.seller-guide-step{grid-template-columns:25px 1fr auto;gap:8px;padding:12px 0}.seller-guide-step p{font-size:11px}.seller-guide-primary,.seller-guide-share{min-height:46px;border-radius:8px}}
+
+/* Marketplace discovery refresh: clearer product hierarchy and calmer cards. */
+.listing-card{overflow:hidden;border:1px solid rgba(220,228,219,.82);border-radius:12px;background:#fff;box-shadow:0 5px 20px rgba(16,42,67,.035);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.listing-card:hover{transform:translateY(-3px);border-color:#cbd8bd;box-shadow:0 13px 30px rgba(16,42,67,.09)}
+.listing-card-media{position:relative;background:#e9eee5}
+.listing-card .listing-image-button{aspect-ratio:1.04;border-radius:0}
+.listing-card .favorite-button{top:11px;right:11px;background:rgba(255,255,255,.94);box-shadow:0 3px 12px rgba(16,42,67,.12);backdrop-filter:blur(8px)}
+.listing-card-content{padding:13px 14px 12px}
+.listing-card .listing-meta{margin:0 0 7px;font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:#78913e;font-weight:800}
+.listing-card .listing-title{display:-webkit-box;min-height:38px;overflow:hidden;text-align:left;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35}
+.listing-card .listing-vendor{margin-top:9px;min-height:25px}
+.listing-card .listing-bottom{margin-top:11px;padding-top:10px;border-top:1px solid #edf0e9}
+.listing-card .listing-bottom strong{font-size:15px;letter-spacing:-.025em}
+.listing-card .listing-bottom button{width:29px;height:29px;border-radius:50%;background:#f0f5e6;color:#536f2d}
+.theme-dark .listing-card{background:#17232d;border-color:#344650;box-shadow:0 5px 20px rgba(0,0,0,.12)}
+.theme-dark .listing-card .listing-bottom{border-color:#344650}
+.theme-dark .listing-card .listing-bottom button{background:#2c3d31;color:#c8f169}
+@media(max-width:600px){
+  .mobile-home-panel{padding-top:24px;padding-bottom:12px}
+  .mobile-home-panel h1{font-size:clamp(40px,10.5vw,49px);letter-spacing:-.07em}
+  .mobile-home-search{margin-top:18px;margin-bottom:20px}
+  .mobile-home-category{flex-basis:76px;min-height:82px;gap:7px}
+  .mobile-home-trust{margin-top:9px;padding:10px 12px}
+  .marketplace-section{padding-top:30px}
+  .listing-grid{gap:17px 11px}
+  .listing-card{border-radius:11px}
+  .listing-card .listing-image-button{aspect-ratio:.94}
+  .listing-card-content{padding:10px 10px 9px}
+  .listing-card .listing-meta{font-size:7px;margin-bottom:5px}
+  .listing-card .listing-title{font-size:12px;min-height:33px;margin-top:3px}
+  .listing-card .listing-vendor{font-size:8px;gap:4px;margin-top:7px}
+  .listing-card .vendor-avatar{width:20px;height:20px}
+  .listing-card .listing-bottom{margin-top:8px;padding-top:8px}
+  .listing-card .listing-bottom strong{font-size:12px}
+  .listing-card .favorite-button{top:8px;right:8px;width:29px;height:29px}
+}
