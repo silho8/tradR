@@ -445,3 +445,26 @@
 
 
 .confirmation-whatsapp{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:4px 0 12px;padding:14px 16px;border:1px solid #c5dfbb;border-radius:8px;background:#edf7e9;color:#205b39;font-size:12px;font-weight:800;line-height:1.5}.confirmation-whatsapp:hover{background:#e2f2dc}.confirmation-notifications{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%;margin:0 0 12px;padding:13px 15px;border:1px solid #dce5d3;border-radius:8px;background:#f5f8ef;color:var(--navy);font-size:12px;font-weight:800;text-align:left}.confirmation-notifications small{flex-basis:100%;font-size:10px;line-height:1.5;font-weight:400;color:#66766f}.confirmation-actions{margin-top:8px}
+
+/* Seller onboarding: a compact, practical first-sale guide inside My shop. */
+.seller-onboarding-note{display:grid;gap:8px;padding:14px 15px;margin:0 0 18px;background:#edf3e3;border:1px solid #dce8c8;border-radius:7px;color:#304b32;font-size:11px;line-height:1.55}
+.seller-onboarding-note b{font-size:12px;color:#213d2a;margin-bottom:2px}
+.seller-onboarding-note strong{padding-top:7px;border-top:1px solid #d4e2c1;font-size:10px}
+.seller-starter-guide{display:grid;gap:14px;padding:18px;margin:18px 0 20px;background:#fff;border:1px solid var(--line);border-radius:9px}
+.seller-starter-guide .section-topline{margin:0}
+.seller-starter-guide .section-topline span{font-size:8px}
+.seller-starter-guide h3{font-family:var(--serif);font-size:21px;letter-spacing:-.04em;color:var(--navy);margin:0}
+.seller-guide-steps{display:grid;gap:0}
+.seller-guide-step{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:13px 0;border-top:1px solid #edf0e9}
+.seller-guide-number{font-size:10px;font-weight:900;color:#7d9d39;letter-spacing:.08em;padding-top:2px}
+.seller-guide-step b{font-size:11px;color:var(--navy)}
+.seller-guide-step p{font-size:10px;line-height:1.65;color:#748187;margin:5px 0 0}
+.seller-guide-check{font-size:14px;font-weight:900;color:#5c7e2b}
+.seller-guide-primary,.seller-guide-share{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 14px;border:0;border-radius:5px;font-size:11px;font-weight:800}
+.seller-guide-primary{background:var(--lime);color:var(--navy)}
+.seller-guide-share{background:#e7f3df;color:#245333}
+.theme-dark .seller-starter-guide{background:#17232d;border-color:#354650}
+.theme-dark .seller-starter-guide h3,.theme-dark .seller-guide-step b{color:#e4edf1}
+.theme-dark .seller-guide-step{border-color:#354650}
+.theme-dark .seller-onboarding-note{background:#1d3027;border-color:#355342;color:#d6e7d5}
+@media(max-width:600px){.seller-starter-guide{padding:15px;margin:16px 0 18px;border-radius:12px}.seller-starter-guide h3{font-size:22px}.seller-guide-step{grid-template-columns:25px 1fr auto;gap:8px;padding:12px 0}.seller-guide-step p{font-size:11px}.seller-guide-primary,.seller-guide-share{min-height:46px;border-radius:8px}}
