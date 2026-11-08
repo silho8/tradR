@@ -16,7 +16,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return respond({ error: "Method not allowed." }, 405);
 
   // New payments are shop-wide. Existing pending listing payments remain verifiable through the webhook.
-  return respond({ error: "Per-listing payments have been retired. Your shop has a free calendar month from signup, then one ₦500 monthly subscription covers the whole shop." }, 410);
+  return respond({ error: "Seller access is currently free on tradR. No subscription payment is required." }, 410);
 
   // Payments stay disabled until Paystack test transactions and webhook verification pass.
   if (Deno.env.get("TRADR_PAYSTACK_ENABLED") !== "true") {
