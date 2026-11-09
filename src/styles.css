@@ -634,3 +634,13 @@
 .shop-preview-actions .modal-primary{text-decoration:none}
 .shop-preview-share{padding:12px 15px;border:1px solid var(--line);background:transparent;color:var(--navy);font-size:10px;font-weight:800}
 @media(max-width:600px){.public-shop-topbar{height:64px;padding:0 18px}.public-shop-hero{padding:42px 20px 38px}.public-shop-avatar{width:82px;height:82px;font-size:34px}.public-shop-listings{padding:38px 16px 55px}.public-shop-listings .listing-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.public-shop-listings .listing-card-content{padding:11px}.public-shop-listings .listing-title-static{font-size:13px}.public-shop-listings .public-shop-item-description{font-size:10px}.public-shop-footer{font-size:8px}.shop-preview-actions{gap:8px}}
+
+/* Global notification access */
+.notification-bell{position:relative;display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.72);color:var(--navy);cursor:pointer}
+.notification-bell sup,.mobile-profile-button sup{position:absolute;top:-3px;right:-4px;display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border-radius:12px;background:var(--lime);color:var(--navy);font-size:9px;font-weight:900}
+.mobile-profile-button{position:relative}
+.mobile-profile-button .notification-badge{top:-3px;right:1px}
+.notification-tools{display:flex;align-items:center;gap:12px}
+.notification-tools button{border:0;background:transparent;color:var(--navy);font-size:10px;font-weight:800;cursor:pointer}
+.theme-dark .notification-bell{background:#253541;border-color:#40525d;color:#e6edf0}
+@media(max-width:600px){.notification-bell{display:none}.mobile-profile-button{display:flex!important}}

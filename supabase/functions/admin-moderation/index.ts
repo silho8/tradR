@@ -83,8 +83,6 @@ Deno.serve(async (req: Request) => {
         const title = "Your shop is approved! 🎉";
         const message = `${vendor.shop_name} has been approved on tradR. You can now publish listings from My shop.`;
         const { data: account } = await admin.auth.admin.getUserById(vendor.profile_id);
-        const { error: notificationError } = await admin.from("notifications").insert({ user_id: vendor.profile_id, kind: "shop_approved", title, message, entity_type: "vendor", entity_id: vendor.id });
-        if (notificationError) console.error("Shop approval activity notification failed:", notificationError.message);
 
         const publicKey = Deno.env.get("VAPID_PUBLIC_KEY");
         const privateKey = Deno.env.get("VAPID_PRIVATE_KEY");
