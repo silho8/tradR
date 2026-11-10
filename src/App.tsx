@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@supabase/supabase-js'
 import InstallGuide from './InstallGuide'
 
@@ -59,6 +59,7 @@ function Icon({ name, size = 19 }: { name: string; size?: number }) {
 }
 
 export default function App() {
+  const queryClient = useQueryClient()
   const [category, setCategory] = useState('All finds')
   const [search, setSearch] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -781,6 +782,11 @@ export default function App() {
       setReviewText('')
       setReviewRating(5)
       setToast('Thanks. Your verified seller review is now published.')
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['seller-ratings'] }),
+        queryClient.invalidateQueries({ queryKey: ['public-shop-page'] }),
+        queryClient.invalidateQueries({ queryKey: ['seller-review-details'] })
+      ])
     } catch (err) { setToast(err instanceof Error ? err.message : 'Could not submit your review.') } finally { setReviewBusy(false) }
   }
 
