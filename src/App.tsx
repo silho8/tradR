@@ -63,6 +63,8 @@ export default function App() {
   const [category, setCategory] = useState('All finds')
   const [search, setSearch] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [searchPage, setSearchPage] = useState(0)
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [sort, setSort] = useState('latest')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [minPrice, setMinPrice] = useState('')
@@ -144,6 +146,42 @@ export default function App() {
   // Seller access is currently free for every account. Billing can be re-enabled deliberately later.
   const shopAccessActive = true
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 250)
+    return () => window.clearTimeout(timer)
+  }, [search])
+
+  const searchResultsQuery = useQuery({
+    queryKey: ['marketplace-search', debouncedSearch, category, minPrice, maxPrice, sort, searchPage],
+    enabled: searchOpen,
+    queryFn: async () => {
+      if (!db) {
+        const term = debouncedSearch.trim().toLowerCase()
+        const items = demoListings.filter(item =>
+          (!term || [item.title, item.description, item.category, item.vendor?.shop_name ?? ''].some(value => value.toLowerCase().includes(term))) &&
+          (category === 'All finds' || item.category === category) &&
+          (!minPrice.trim() || item.price_ngn >= Number(minPrice)) &&
+          (!maxPrice.trim() || item.price_ngn <= Number(maxPrice))
+        )
+        return { items: items.slice(searchPage * 20, searchPage * 20 + 20), totalCount: items.length }
+      }
+      const { data, error } = await db.rpc('search_marketplace_listings', {
+        p_search: debouncedSearch.trim() || null,
+        p_category: category === 'All finds' ? null : category,
+        p_min_price: minPrice.trim() ? Math.max(0, Math.floor(Number(minPrice))) : null,
+        p_max_price: maxPrice.trim() ? Math.max(0, Math.floor(Number(maxPrice))) : null,
+        p_sort: sort,
+        p_limit: 20,
+        p_offset: searchPage * 20
+      })
+      if (error) throw error
+      const items = (data ?? []) as unknown as Array<Listing & { total_count: number; relevance: number }>
+      return { items, totalCount: Number(items[0]?.total_count ?? 0) }
+    },
+    staleTime: 15_000,
+    refetchOnWindowFocus: false
+  })
+
   const query = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
@@ -166,13 +204,17 @@ export default function App() {
       .channel('marketplace-listing-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'listings' }, () => {
         void query.refetch()
+        void queryClient.invalidateQueries({ queryKey: ['marketplace-search'] })
       })
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') void query.refetch()
+        if (status === 'SUBSCRIBED') {
+          void query.refetch()
+          void queryClient.invalidateQueries({ queryKey: ['marketplace-search'] })
+        }
       })
 
     return () => { void db.removeChannel(channel) }
-  }, [query.refetch])
+  }, [query.refetch, queryClient])
 
   const ratingsQuery = useQuery({
     queryKey: ['seller-ratings'],
@@ -969,7 +1011,7 @@ export default function App() {
       <section className="trust-strip"><div><span className="trust-icon">↗</span><span><b>Real campus connections</b><small>Find people who are right here.</small></span></div><div><span className="trust-icon">♡</span><span><b>Keep it direct</b><small>Talk to sellers on WhatsApp.</small></span></div><div><span className="trust-icon trust-lcu-icon"><img src="/assets/lead-city-university-logo.png" alt="Lead City University logo" /></span><span><b>Made for LCU</b><small>Your campus community, in one place.</small></span></div></section>
     </main>
 
-    {searchOpen && <div className="search-page" role="dialog" aria-modal="true" aria-label="Search the marketplace"><div className="search-page-inner"><header className="search-page-header"><button type="button" className="search-back-button" onClick={() => setSearchOpen(false)} aria-label="Back to marketplace"><Icon name="arrow"/></button><div><span className="eyebrow">DISCOVER TRADR.</span><h2>Find your <em>thing.</em></h2></div></header><label className="search-page-input"><Icon name="search" size={21}/><input autoFocus value={search} onChange={e => { setSearch(e.target.value); setSavedOnly(false) }} placeholder="Search products, shops, categories..." aria-label="Search products and shops"/><button type="button" onClick={() => setSearch('')} aria-label="Clear search" disabled={!search}><Icon name="close"/></button></label><div className="search-page-categories"><span>QUICK CATEGORIES</span><div>{categories.map(([label, emoji]) => <button type="button" key={label} className={category === label ? 'active' : ''} onClick={() => { setCategory(label); setSavedOnly(false) }}>{emoji} {label}</button>)}</div></div><div className="search-page-controls"><label>Min price (₦)<input type="number" min="0" inputMode="numeric" placeholder="Any" value={minPrice} onChange={e => setMinPrice(e.target.value)}/></label><label>Max price (₦)<input type="number" min="0" inputMode="numeric" placeholder="Any" value={maxPrice} onChange={e => setMaxPrice(e.target.value)}/></label><label>Sort<select value={sort} onChange={e => setSort(e.target.value)}><option value="latest">Latest</option><option value="price-low">Lowest price</option><option value="price-high">Highest price</option></select></label><button type="button" onClick={() => { setMinPrice(""); setMaxPrice(""); setSort("latest") }}>Reset</button></div><div className="search-page-results-head"><b>{search.trim() ? `Results for “${search.trim()}”` : category === 'All finds' ? 'Explore all finds' : category}</b><span>{query.isLoading ? 'Loading…' : `${listings.length} ${listings.length === 1 ? 'result' : 'results'}`}</span></div>{query.isLoading ? <div className="search-page-loading">Finding good things around campus…</div> : listings.length ? <div className="search-result-list">{listings.map(item => <button type="button" className="search-result-item" key={item.id} onClick={() => { setSearchOpen(false); setSelected(item); setSelectedImageIndex(0); void recordListingEvent(item.id, 'view') }}><img src={img(item)} alt="" loading="lazy"/><span className="search-result-copy"><small>{item.category}</small><b>{item.title}</b><span>{item.vendor?.shop_name ?? 'LCU seller'}</span></span><strong>{money(Number(item.price_ngn))}</strong><Icon name="arrow" size={17}/></button>)}</div> : <div className="search-page-empty"><span><Icon name="search" size={24}/></span><b>No matches yet.</b><p>Try a different word or browse another category.</p><button type="button" onClick={() => { setSearch(''); setCategory('All finds') }}>Clear search</button></div>}</div></div>}
+    {searchOpen && <div className="search-page" role="dialog" aria-modal="true" aria-label="Search the marketplace"><div className="search-page-inner"><header className="search-page-header"><button type="button" className="search-back-button" onClick={() => setSearchOpen(false)} aria-label="Back to marketplace"><Icon name="arrow"/></button><div><span className="eyebrow">DISCOVER TRADR.</span><h2>Find your <em>thing.</em></h2></div></header><label className="search-page-input"><Icon name="search" size={21}/><input autoFocus value={search} onChange={e => { setSearch(e.target.value); setSearchPage(0); setSavedOnly(false) }} placeholder="Search products, shops, categories..." aria-label="Search products and shops"/><button type="button" onClick={() => { setSearch(''); setSearchPage(0) }} aria-label="Clear search" disabled={!search}><Icon name="close"/></button></label><div className="search-page-categories"><span>QUICK CATEGORIES</span><div>{categories.map(([label, emoji]) => <button type="button" key={label} className={category === label ? 'active' : ''} onClick={() => { setCategory(label); setSearchPage(0); setSavedOnly(false) }}>{emoji} {label}</button>)}</div></div><div className="search-page-controls"><label>Min price (₦)<input type="number" min="0" inputMode="numeric" placeholder="Any" value={minPrice} onChange={e => { setMinPrice(e.target.value); setSearchPage(0) }}/></label><label>Max price (₦)<input type="number" min="0" inputMode="numeric" placeholder="Any" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setSearchPage(0) }}/></label><label>Sort<select value={sort} onChange={e => { setSort(e.target.value); setSearchPage(0) }}><option value="latest">{search.trim() ? 'Best match' : 'Latest'}</option><option value="price-low">Lowest price</option><option value="price-high">Highest price</option></select></label><button type="button" onClick={() => { setMinPrice(""); setMaxPrice(""); setSort("latest"); setSearchPage(0) }}>Reset</button></div><div className="search-page-results-head"><b>{search.trim() ? `Results for “${search.trim()}”` : category === 'All finds' ? 'Explore all finds' : category}</b><span>{searchResultsQuery.isFetching ? 'Searching…' : `${searchResultsQuery.data?.totalCount ?? 0} ${(searchResultsQuery.data?.totalCount ?? 0) === 1 ? 'result' : 'results'}`}</span></div>{searchResultsQuery.isLoading ? <div className="search-page-loading">Finding good things around campus…</div> : searchResultsQuery.isError ? <div className="search-page-empty"><span><Icon name="search" size={24}/></span><b>Search is temporarily unavailable.</b><p>Check your connection and try again.</p><button type="button" onClick={() => void searchResultsQuery.refetch()}>Try again</button></div> : (searchResultsQuery.data?.items.length ?? 0) ? <><div className="search-result-list">{searchResultsQuery.data!.items.map(item => <button type="button" className="search-result-item" key={item.id} onClick={() => { setSearchOpen(false); setSelected(item); setSelectedImageIndex(0); void recordListingEvent(item.id, 'view') }}><img src={img(item)} alt="" loading="lazy"/><span className="search-result-copy"><small>{item.category}</small><b>{item.title}</b><span>{item.vendor?.shop_name ?? 'LCU seller'}</span></span><strong>{money(Number(item.price_ngn))}</strong><Icon name="arrow" size={17}/></button>)}</div><div className="search-pagination"><button type="button" disabled={searchPage === 0 || searchResultsQuery.isFetching} onClick={() => setSearchPage(page => Math.max(0, page - 1))}>Previous</button><span>Page {searchPage + 1} of {Math.max(1, Math.ceil((searchResultsQuery.data?.totalCount ?? 0) / 20))}</span><button type="button" disabled={(searchPage + 1) * 20 >= (searchResultsQuery.data?.totalCount ?? 0) || searchResultsQuery.isFetching} onClick={() => setSearchPage(page => page + 1)}>Next</button></div></> : <div className="search-page-empty"><span><Icon name="search" size={24}/></span><b>No matches yet.</b><p>Try a different word or browse another category.</p><button type="button" onClick={() => { setSearch(''); setCategory('All finds'); setSearchPage(0) }}>Clear search</button></div>}</div></div>}
 
     <footer className="site-footer"><a className="brand" href="#"><span className="brand-mark">t<span>.</span></span><span className="brand-word">tradR<span>.</span></span></a><span className="footer-note">GOOD FINDS TRAVEL FAST.</span><span className="footer-copy">© 2026 tradR.</span><span className="footer-made-for"><span>Made for</span><img src="/assets/lead-city-university-logo.png" alt="Lead City University" /></span><button onClick={() => setToast('For safety concerns, please contact the tradR admin team.')}>Safety & support ↗</button></footer>
     <nav className="mobile-bottom-nav" aria-label="Main navigation">
