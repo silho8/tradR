@@ -9,6 +9,8 @@ export default function PWAUpdatePrompt() {
   useEffect(() => {
     let interval: number | undefined
     let focusHandler: (() => void) | undefined
+    let visibilityHandler: (() => void) | undefined
+    let pageShowHandler: (() => void) | undefined
     const applyUpdate = registerSW({
       immediate: true,
       onNeedRefresh() { setUpdateAvailable(true) },
@@ -18,12 +20,18 @@ export default function PWAUpdatePrompt() {
         interval = window.setInterval(() => { void registration.update() }, 60 * 60 * 1000)
         focusHandler = () => { void registration.update() }
         window.addEventListener('focus', focusHandler)
+        visibilityHandler = () => { if (document.visibilityState === 'visible') void registration.update() }
+        pageShowHandler = () => { void registration.update() }
+        document.addEventListener('visibilitychange', visibilityHandler)
+        window.addEventListener('pageshow', pageShowHandler)
       }
     })
     setUpdateSW(() => applyUpdate)
     return () => {
       if (interval !== undefined) window.clearInterval(interval)
       if (focusHandler) window.removeEventListener('focus', focusHandler)
+      if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler)
+      if (pageShowHandler) window.removeEventListener('pageshow', pageShowHandler)
     }
   }, [])
 
