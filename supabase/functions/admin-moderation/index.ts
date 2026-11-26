@@ -38,13 +38,15 @@ Deno.serve(async (req: Request) => {
     const action = typeof body.action === "string" ? body.action : "load";
 
     if (action === "load") {
-      const [vendors, reports, activeListings, dailyPushMessages] = await Promise.all([
-        admin.from("vendors").select("id,shop_name,bio,whatsapp_number,verification_status,created_at,profile_id").eq("verification_status", "pending").order("created_at", { ascending: true }).limit(50),
-        admin.from("seller_reports").select("id,reason,details,status,created_at,vendor_id,listing_id,evidence_paths,vendors(shop_name),listings(title)").in("status", ["pending", "reviewing"]).order("created_at", { ascending: true }).limit(50),
+      const [vendors, reports, activeListings, dailyPushMessages, supportCases, payoutAccounts] = await Promise.all([
+        admin.from("vendors").select("id,shop_name,bio,verification_status,created_at,profile_id").eq("verification_status", "pending").order("created_at", { ascending: true }).limit(50),
+        admin.from("seller_reports").select("id,reason,details,status,created_at,vendor_id,listing_id,order_id,evidence_paths,vendors(shop_name),listings(title)").in("status", ["pending", "reviewing"]).neq("reason", "order_support").order("created_at", { ascending: true }).limit(50),
         admin.from("listings").select("id,title,description,category,price_ngn,image_urls,status,moderation_status,created_at,visible_until,vendor_id,vendors(shop_name,verification_status)").eq("status", "published").eq("moderation_status", "approved").gt("visible_until", new Date().toISOString()).order("created_at", { ascending: false }).limit(500),
         admin.from("daily_push_messages").select("weekday,title,body,enabled").order("weekday", { ascending: true }),
+        admin.from("seller_reports").select("id,reason,details,status,created_at,reporter_id,vendor_id,order_id,vendors(shop_name)").eq("reason", "order_support").order("created_at", { ascending: false }).limit(100),
+        admin.from("vendor_payout_accounts").select("vendor_id,bank_name,account_name,account_last4,status,verified_at").not("vendor_id", "is", null),
       ]);
-      const failure = vendors.error ?? reports.error ?? activeListings.error ?? dailyPushMessages.error;
+      const failure = vendors.error ?? reports.error ?? activeListings.error ?? dailyPushMessages.error ?? supportCases.error ?? payoutAccounts.error;
       if (failure) throw failure;
       const reportsWithEvidence = await Promise.all((reports.data ?? []).map(async report => {
         const evidenceUrls = await Promise.all((report.evidence_paths ?? []).map(async (path: string) => {
@@ -53,7 +55,7 @@ Deno.serve(async (req: Request) => {
         }));
         return { ...report, evidence_urls: evidenceUrls.filter(Boolean) };
       }));
-      return respond({ vendors: vendors.data ?? [], reports: reportsWithEvidence, active_listings: activeListings.data ?? [], daily_push_messages: dailyPushMessages.data ?? [] });
+      return respond({ vendors: vendors.data ?? [], reports: reportsWithEvidence, support_cases: supportCases.data ?? [], payout_accounts: payoutAccounts.data ?? [], active_listings: activeListings.data ?? [], daily_push_messages: dailyPushMessages.data ?? [] });
     }
 
     if (action === "update_daily_push_message") {
@@ -67,6 +69,28 @@ Deno.serve(async (req: Request) => {
       if (error) throw error;
       if (!data) return respond({ error: "That daily message was not found. Refresh the admin desk." }, 404);
       return respond({ success: true });
+    }
+
+    if (action === "read_support_chat") {
+      const reportId = typeof body.report_id === "string" ? body.report_id : "";
+      if (!/^[0-9a-f-]{36}$/i.test(reportId)) return respond({ error: "A valid support case is required." }, 400);
+      const { data: supportCase, error: caseError } = await admin.from("seller_reports")
+        .select("id,order_id,reason,status").eq("id", reportId).eq("reason", "order_support").maybeSingle();
+      if (caseError) throw caseError;
+      if (!supportCase?.order_id) return respond({ error: "This support case is no longer open." }, 404);
+      const [{ data: order, error: orderError }, { data: messages, error: messagesError }, { data: events, error: eventsError }] = await Promise.all([
+        admin.from("orders").select("id,public_order_number,buyer_id,buyer_contact_snapshot,vendor:vendors(shop_name,profile_id)").eq("id", supportCase.order_id).single(),
+        admin.from("order_chat_messages").select("id,order_id,sender_id,body,created_at").eq("order_id", supportCase.order_id).order("created_at", { ascending: true }).limit(500),
+        admin.from("order_events").select("id,event_type,public_message,created_at,actor_type").eq("order_id", supportCase.order_id).order("created_at", { ascending: true }).limit(200),
+      ]);
+      if (orderError) throw orderError;
+      if (messagesError) throw messagesError;
+      if (eventsError) throw eventsError;
+      const { error: auditError } = await admin.from("support_chat_access_audit").insert({
+        admin_id: user.id, report_id: reportId, order_id: supportCase.order_id, message_count: messages?.length ?? 0,
+      });
+      if (auditError) throw auditError;
+      return respond({ support_case: supportCase, order, messages: messages ?? [], events: events ?? [] });
     }
 
     const id = typeof body.id === "string" ? body.id : "";
@@ -132,7 +156,17 @@ Deno.serve(async (req: Request) => {
     if (action === "review_report") {
       const status = body.status;
       if (status !== "reviewing" && status !== "resolved" && status !== "dismissed") return respond({ error: "Choose a valid report status." }, 400);
-      const { data, error } = await admin.from("seller_reports").update({ status, updated_at: new Date().toISOString() }).eq("id", id).in("status", ["pending", "reviewing"]).select("id").maybeSingle();
+      const { data: existingReport, error: existingError } = await admin.from("seller_reports")
+        .select("id,reason,order_id").eq("id", id).in("status", ["pending", "reviewing"]).maybeSingle();
+      if (existingError) throw existingError;
+      if (!existingReport) return respond({ error: "This report is no longer active. Refresh the queue." }, 409);
+      if (existingReport.reason === "order_support" && existingReport.order_id && (status === "resolved" || status === "dismissed")) {
+        const { error: restoreError } = await admin.from("orders").update({ payment_status: "succeeded", updated_at: new Date().toISOString() })
+          .eq("id", existingReport.order_id).eq("payment_status", "disputed");
+        if (restoreError) throw restoreError;
+      }
+      const { data, error } = await admin.from("seller_reports").update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id).in("status", ["pending", "reviewing"]).select("id").maybeSingle();
       if (error) throw error;
       if (!data) return respond({ error: "This report is no longer active. Refresh the queue." }, 409);
       return respond({ success: true });

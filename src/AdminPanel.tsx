@@ -2,17 +2,20 @@ import { useCallback, useEffect, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 type AdminPanelProps = { db: SupabaseClient; onClose: () => void }
-type VendorRow = { id: string; shop_name: string; bio: string; whatsapp_number: string; verification_status: string; created_at: string }
+type VendorRow = { id: string; shop_name: string; bio: string; verification_status: string; created_at: string }
 type ReportRow = { id: string; reason: string; details: string; status: string; created_at: string; vendor_id: string; listing_id: string | null; evidence_paths: string[]; evidence_urls?: string[]; vendors?: { shop_name: string } | null; listings?: { title: string } | null }
 type ActiveListingRow = { id: string; title: string; description: string; category: string; price_ngn: number; image_urls: string[]; status: string; moderation_status: string; created_at: string; visible_until: string; vendors?: { shop_name: string; verification_status: string } | null }
 type DailyPushMessage = { weekday: number; title: string; body: string; enabled: boolean }
+type SupportCaseRow = { id: string; details: string; status: string; created_at: string; reporter_id: string; vendor_id: string; order_id: string; vendors?: { shop_name: string } | null }
+type PayoutAccountRow = { vendor_id: string; bank_name: string; account_name: string; account_last4: string; status: string; verified_at: string }
+type SupportChatData = { support_case: { id: string; status: string; order_id: string }; order: { public_order_number: string; buyer_id: string; buyer_contact_snapshot: { name?: string } | null; vendor: { shop_name?: string; profile_id?: string } | null }; messages: Array<{ id: string; sender_id: string; body: string; created_at: string }>; events: Array<{ id: string; event_type: string; public_message: string | null; created_at: string; actor_type: string }> }
 type DeliveryAgentRow = { id: string; display_name: string; phone: string; status: string; created_at: string; government_id_path: string | null; selfie_path: string | null; government_id_url?: string | null; selfie_url?: string | null }
 type DeliveryIncidentRow = { id: string; delivery_id: string; order_id: string; reason: string; details: string; status: string; created_at: string; admin_notes: string | null; pickup_completed: boolean }
-type PayoutRow = { id: string; order_id: string | null; vendor_id?: string; agent_id?: string; amount_kobo: number; status: string; requested_at: string; eligible_at?: string | null; payout_reference?: string | null; failure_reason?: string | null }
-type Queue = { vendors: VendorRow[]; reports: ReportRow[]; activeListings: ActiveListingRow[]; dailyMessages: DailyPushMessage[]; deliveryAgents: DeliveryAgentRow[]; incidents: DeliveryIncidentRow[]; sellerPayouts: PayoutRow[]; agentPayouts: PayoutRow[] }
-type Tab = 'shops' | 'active' | 'reports' | 'push' | 'delivery'
+type PayoutRow = { id: string; order_id: string | null; vendor_id?: string; agent_id?: string; amount_kobo: number; status: string; requested_at: string; eligible_at?: string | null; payout_reference?: string | null; failure_reason?: string | null; payout_account?: PayoutAccountRow }
+type Queue = { vendors: VendorRow[]; reports: ReportRow[]; supportCases: SupportCaseRow[]; payoutAccounts: PayoutAccountRow[]; activeListings: ActiveListingRow[]; dailyMessages: DailyPushMessage[]; deliveryAgents: DeliveryAgentRow[]; incidents: DeliveryIncidentRow[]; sellerPayouts: PayoutRow[]; agentPayouts: PayoutRow[] }
+type Tab = 'shops' | 'active' | 'reports' | 'support' | 'push' | 'delivery'
 
-const emptyQueue: Queue = { vendors: [], reports: [], activeListings: [], dailyMessages: [], deliveryAgents: [], incidents: [], sellerPayouts: [], agentPayouts: [] }
+const emptyQueue: Queue = { vendors: [], reports: [], supportCases: [], payoutAccounts: [], activeListings: [], dailyMessages: [], deliveryAgents: [], incidents: [], sellerPayouts: [], agentPayouts: [] }
 const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const dateLabel = (value: string) => new Date(value).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })
 const naira = (value: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(value)
@@ -24,6 +27,8 @@ export default function AdminPanel({ db, onClose }: AdminPanelProps) {
   const [busyId, setBusyId] = useState('')
   const [notice, setNotice] = useState('')
   const [failure, setFailure] = useState('')
+  const [supportChat, setSupportChat] = useState<SupportChatData | null>(null)
+  const [supportChatBusy, setSupportChatBusy] = useState(false)
 
   const loadQueue = useCallback(async () => {
     setLoading(true)
@@ -56,11 +61,13 @@ export default function AdminPanel({ db, onClose }: AdminPanelProps) {
     setQueue({
       vendors: Array.isArray(data?.vendors) ? data.vendors : [],
       reports: Array.isArray(data?.reports) ? data.reports : [],
+      supportCases: Array.isArray(data?.support_cases) ? data.support_cases : [],
+      payoutAccounts: Array.isArray(data?.payout_accounts) ? data.payout_accounts : [],
       activeListings: Array.isArray(data?.active_listings) ? data.active_listings : [],
       dailyMessages: Array.isArray(data?.daily_push_messages) ? data.daily_push_messages : [],
       deliveryAgents,
       incidents: (incidentResult.data ?? []) as DeliveryIncidentRow[],
-      sellerPayouts: (sellerPayoutResult.data ?? []) as PayoutRow[],
+      sellerPayouts: ((sellerPayoutResult.data ?? []) as PayoutRow[]).map(payout => ({ ...payout, payout_account: (data?.payout_accounts ?? []).find((account: PayoutAccountRow) => account.vendor_id === payout.vendor_id) })),
       agentPayouts: (agentPayoutResult.data ?? []) as PayoutRow[],
     })
     setLoading(false)
@@ -129,6 +136,14 @@ export default function AdminPanel({ db, onClose }: AdminPanelProps) {
     await loadQueue(); setBusyId('')
   }
 
+  async function viewSupportChat(reportId: string) {
+    setSupportChatBusy(true); setFailure(''); setSupportChat(null)
+    const { data, error } = await db.functions.invoke('admin-moderation', { body: { action: 'read_support_chat', report_id: reportId } })
+    if (error || data?.error) setFailure(data?.error || error?.message || 'Could not open this order conversation.')
+    else setSupportChat(data as SupportChatData)
+    setSupportChatBusy(false)
+  }
+
   async function saveDailyMessage(message: DailyPushMessage) {
     setBusyId('push-' + message.weekday)
     setNotice('')
@@ -148,25 +163,36 @@ export default function AdminPanel({ db, onClose }: AdminPanelProps) {
     setQueue(current => ({ ...current, dailyMessages: current.dailyMessages.map(message => message.weekday === weekday ? { ...message, [field]: value } : message) }))
   }
 
-  const counts = { shops: queue.vendors.length, active: queue.activeListings.length, reports: queue.reports.length, push: queue.dailyMessages.length, delivery: queue.deliveryAgents.filter(agent => agent.status === 'pending').length }
+  const counts = { shops: queue.vendors.length, active: queue.activeListings.length, reports: queue.reports.length, support: queue.supportCases.filter(item => item.status === 'pending' || item.status === 'reviewing').length, push: queue.dailyMessages.length, delivery: queue.deliveryAgents.filter(agent => agent.status === 'pending').length }
   const activeByShop = queue.activeListings.reduce<Record<string, ActiveListingRow[]>>((groups, listing) => { const shop = listing.vendors?.shop_name || 'Unknown shop'; (groups[shop] ??= []).push(listing); return groups }, {})
 
   return <div className="modal-backdrop admin-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !busyId) onClose() }}>
-    <section className="form-modal admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-heading">
-      <button className="modal-close" onClick={onClose} aria-label="Close admin moderation"><span aria-hidden="true">×</span></button>
-      <div className="modal-brand-mark">t<span>.</span></div>
-      <span className="eyebrow">TRADR OPERATIONS</span>
-      <h2 id="admin-heading">Moderation desk.</h2>
-      <p>Shops can list immediately. Review live products, remove unfavourable listings, follow up on buyer safety reports, and manage the daily campus pick. The Shops tab is retained for older accounts still awaiting review.</p>
-      <div className="admin-tabs" role="tablist" aria-label="Moderation queues">
-        {(['shops', 'active', 'reports', 'push', 'delivery'] as const).map(item => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>{item === 'shops' ? 'Pending shops' : item === 'active' ? 'Live by shop' : item === 'reports' ? 'Safety reports' : item === 'push' ? 'Daily push' : 'Delivery'} <span>{counts[item]}</span></button>)}
-      </div>
-      {notice && <div className="admin-notice">{notice}</div>}
-      {failure && <div className="admin-error" role="alert">{failure}{failure.includes('Admin access') ? ' Ask the project owner to grant your account the admin app_metadata role.' : ''}</div>}
-      <div className="admin-queue">
-        {loading ? <div className="dashboard-empty"><b>Loading review queue…</b><span>Checking your admin permissions and latest records.</span></div> : tab === 'push' ? <><div className="dashboard-empty"><b>One featured message per day.</b><span>Only that day’s message is sent, at each subscriber’s random daytime slot. Keep it useful, short and campus-relevant.</span></div>{queue.dailyMessages.map(message => <article className="admin-item admin-push-item" key={message.weekday}><div className="admin-item-heading"><div><b>{weekdays[message.weekday]}</b><small>Daily campus pick · {message.enabled ? 'Enabled' : 'Paused'}</small></div></div><label>Notification title<input value={message.title} maxLength={120} onChange={event => editDailyMessage(message.weekday, 'title', event.target.value)}/></label><label>Notification message<textarea value={message.body} maxLength={240} rows={3} onChange={event => editDailyMessage(message.weekday, 'body', event.target.value)}/></label><label className="admin-push-toggle"><input type="checkbox" checked={message.enabled} onChange={event => editDailyMessage(message.weekday, 'enabled', event.target.checked)}/> Send this message on {weekdays[message.weekday]}</label><div className="admin-actions"><button className="approve" disabled={!!busyId || !message.title.trim() || !message.body.trim()} onClick={() => void saveDailyMessage(message)}>{busyId === 'push-' + message.weekday ? 'Saving…' : 'Save message'}</button></div></article>)}</> : tab === 'shops' ? queue.vendors.length ? queue.vendors.map(vendor => <article className="admin-item" key={vendor.id}>
+    <section className="admin-workspace" role="dialog" aria-modal="true" aria-labelledby="admin-heading">
+      <aside className="admin-sidebar">
+        <div className="admin-brand"><div className="admin-brand-mark">t<span>.</span></div><b>tradR.</b></div>
+        <span className="admin-sidebar-label">ADMIN WORKSPACE</span>
+        <nav className="admin-tabs" role="tablist" aria-label="Moderation queues">
+          {(['active', 'shops', 'reports', 'support', 'delivery', 'push'] as const).map(item => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? 'active' : ''} onClick={() => { setTab(item); if (item !== 'support') setSupportChat(null) }}><span className="admin-nav-icon">{item === 'active' ? '▤' : item === 'shops' ? '▣' : item === 'reports' ? '⚑' : item === 'support' ? '◉' : item === 'delivery' ? '⇢' : '◌'}</span><span className="admin-nav-label">{item === 'active' ? 'Listings' : item === 'shops' ? 'Shops' : item === 'reports' ? 'Reports' : item === 'support' ? 'Order support' : item === 'delivery' ? 'Delivery agents' : 'Notifications'}</span><span className="admin-nav-count">{counts[item]}</span></button>)}
+        </nav>
+        <div className="admin-sidebar-footer">tradR. · Lead City<br/>Marketplace operations</div>
+      </aside>
+      <main className="admin-main">
+        <header className="admin-main-header">
+          <div><span className="eyebrow">TRADR OPERATIONS</span><h2 id="admin-heading">Marketplace overview</h2><p>Keep an eye on listings, shops and campus activity.</p></div>
+          <div className="admin-header-actions"><div className="admin-user-pill">Admin account <span>▾</span></div><button className="admin-close" onClick={onClose} aria-label="Close admin moderation">×</button></div>
+        </header>
+        <div className="admin-metrics">
+          <article><span>Active listings</span><b>{queue.activeListings.length.toLocaleString('en-NG')}</b><small>Currently live on tradR.</small></article>
+          <article><span>Live shops</span><b>{Object.keys(activeByShop).length.toLocaleString('en-NG')}</b><small>With published listings</small></article>
+          <article><span>Open reports</span><b>{(queue.reports.length + counts.support).toLocaleString('en-NG')}</b><small>Safety and order support</small></article>
+          <article><span>Pending agents</span><b>{counts.delivery.toLocaleString('en-NG')}</b><small>Awaiting admin review</small></article>
+        </div>
+        {notice && <div className="admin-notice">{notice}</div>}
+        {failure && <div className="admin-error" role="alert">{failure}{failure.includes('Admin access') ? ' Ask the project owner to grant your account the admin app_metadata role.' : ''}</div>}
+        <div className="admin-queue">
+        {loading ? <div className="dashboard-empty"><b>Loading review queue…</b><span>Checking your admin permissions and latest records.</span></div> : tab === 'push' ? <><div className="dashboard-empty"><b>One featured message per day.</b><span>Only that day’s message is sent, at each subscriber’s random daytime slot. Keep it useful, short and campus-relevant.</span></div>{queue.dailyMessages.map(message => <article className="admin-item admin-push-item" key={message.weekday}><div className="admin-item-heading"><div><b>{weekdays[message.weekday]}</b><small>Daily campus pick · {message.enabled ? 'Enabled' : 'Paused'}</small></div></div><label>Notification title<input value={message.title} maxLength={120} onChange={event => editDailyMessage(message.weekday, 'title', event.target.value)}/></label><label>Notification message<textarea value={message.body} maxLength={240} rows={3} onChange={event => editDailyMessage(message.weekday, 'body', event.target.value)}/></label><label className="admin-push-toggle"><input type="checkbox" checked={message.enabled} onChange={event => editDailyMessage(message.weekday, 'enabled', event.target.checked)}/> Send this message on {weekdays[message.weekday]}</label><div className="admin-actions"><button className="approve" disabled={!!busyId || !message.title.trim() || !message.body.trim()} onClick={() => void saveDailyMessage(message)}>{busyId === 'push-' + message.weekday ? 'Saving…' : 'Save message'}</button></div></article>)}</> : tab === 'support' ? <><div className="admin-support-intro"><b>Support-triggered conversation reviews</b><span>Only conversations attached to an order-support case appear here, including closed cases for audit follow-up. Opening a chat is read-only and is recorded in the access audit.</span></div>{supportChat ? <section className="admin-support-chat"><header><div><span className="eyebrow">READ-ONLY INVESTIGATION</span><b>Order {supportChat.order.public_order_number}</b><small>Case {supportChat.support_case.id.slice(0,8).toUpperCase()} · {supportChat.support_case.status.toUpperCase()}</small></div><button type="button" onClick={()=>setSupportChat(null)}>Back to cases</button></header><div className="admin-support-participants"><span>Buyer: {supportChat.order.buyer_contact_snapshot?.name || 'Buyer'}</span><span>Seller: {supportChat.order.vendor?.shop_name || 'Seller'}</span></div><div className="admin-support-messages">{supportChat.messages.length ? supportChat.messages.map(message=><article key={message.id}><div><b>{message.sender_id===supportChat.order.buyer_id?'Buyer':'Seller'}</b><small>{dateLabel(message.created_at)}</small></div><p>{message.body}</p></article>) : <div className="dashboard-empty"><b>No chat messages</b><span>This order has no messages yet.</span></div>}{supportChat.events.map(event=><div className="admin-support-event" key={event.id}>{event.public_message || event.event_type.replaceAll('_',' ')} · {dateLabel(event.created_at)}</div>)}</div><small className="admin-support-audit-note">Your access to this conversation has been recorded. Messages cannot be edited or sent from the admin dashboard.</small></section> : <>{supportChatBusy && <div className="dashboard-empty">Opening protected conversation…</div>}{queue.supportCases.length ? queue.supportCases.map(item=><article className="admin-item admin-support-case" key={item.id}><div className="admin-item-heading"><div><b>Order {item.order_id.slice(0,8).toUpperCase()}</b><small>{item.vendors?.shop_name || 'Seller'} · Opened {dateLabel(item.created_at)}</small></div><span className="dashboard-status pending">{item.status.toUpperCase()}</span></div><p>{item.details}</p><div className="admin-actions"><button disabled={!!busyId || supportChatBusy} onClick={()=>void viewSupportChat(item.id)}>Review conversation</button>{(item.status === 'pending' || item.status === 'reviewing') && <><button disabled={!!busyId} onClick={()=>void act('review_report',item.id,'dismissed')}>Dismiss case</button><button className="approve" disabled={!!busyId} onClick={()=>void act('review_report',item.id,'resolved')}>Resolve & release hold</button></>}</div></article>) : <div className="dashboard-empty"><b>No open order-support cases.</b><span>When a buyer or seller contacts tradR. Support from an order chat, the case and its conversation will appear here.</span></div>}</>}</> : tab === 'shops' ? queue.vendors.length ? queue.vendors.map(vendor => <article className="admin-item" key={vendor.id}>
           <div className="admin-item-heading"><div><b>{vendor.shop_name}</b><small>Submitted {dateLabel(vendor.created_at)}</small></div><span className="dashboard-status pending">LEGACY PENDING</span></div>
-          <p>{vendor.bio || 'No shop description provided.'}</p><small className="admin-contact">WhatsApp: {vendor.whatsapp_number}</small>
+          <p>{vendor.bio || 'No shop description provided.'}</p>
           <div className="admin-actions"><button disabled={!!busyId} onClick={() => void act('review_vendor', vendor.id, 'rejected')}>Reject shop</button><button className="approve" disabled={!!busyId} onClick={() => void act('review_vendor', vendor.id, 'approved')}>{busyId === vendor.id ? 'Saving…' : 'Approve shop'}</button></div>
         </article>) : <div className="dashboard-empty"><b>No legacy shops awaiting review.</b><span>New shops are approved automatically. This queue is only for older accounts that were pending before the change.</span></div> : tab === 'active' ? queue.activeListings.length ? Object.entries(activeByShop).map(([shopName, items]) => <section className="admin-shop-group" key={shopName}><div className="admin-shop-group-heading"><b>{shopName}</b><span>{items.length} active listing{items.length === 1 ? '' : 's'}</span></div>{items.map(listing => <article className="admin-item" key={listing.id}><div className="admin-item-heading"><div><b>{listing.title}</b><small>{naira(Number(listing.price_ngn))} · {listing.category}</small><small>Published {dateLabel(listing.created_at)} · Expires {dateLabel(listing.visible_until)}</small></div><span className="dashboard-status">ACTIVE</span></div><div className="admin-listing-preview">{listing.image_urls?.[0] && <img src={listing.image_urls[0]} alt="" loading="lazy" />}<div><p>{listing.description}</p></div></div><div className="admin-actions"><button className="danger-link" disabled={!!busyId} onClick={() => { if (window.confirm(`Remove “${listing.title}” from ${shopName}? It will immediately disappear from the marketplace. The record will be retained for moderation history.`)) void act('remove_listing', listing.id, '') }}>{busyId === listing.id ? 'Removing…' : 'Remove listing'}</button></div></article>)}</section>) : <div className="dashboard-empty"><b>No active listings.</b><span>Approved, currently published products will appear here, grouped by shop.</span></div> : tab === 'delivery' ? <>
           <div className="dashboard-empty"><b>Delivery-agent applications</b><span>Approve trusted agents before they can accept buyer-paid tradR deliveries.</span></div>
@@ -189,6 +215,8 @@ export default function AdminPanel({ db, onClose }: AdminPanelProps) {
           {queue.sellerPayouts.filter(item => item.status !== 'succeeded' && item.status !== 'cancelled').map(payout => <article className="admin-item" key={payout.id}>
             <div className="admin-item-heading"><div><b>{naira(payout.amount_kobo / 100)}</b><small>Order {payout.order_id?.slice(0,8) || 'Legacy payout'} · {dateLabel(payout.requested_at)}</small></div><span className="dashboard-status pending">{payout.status.toUpperCase()}</span></div>
             {payout.eligible_at && new Date(payout.eligible_at) > new Date() && <small>Eligible {dateLabel(payout.eligible_at)}</small>}
+            {payout.payout_account && <small className="admin-payout-destination">Pay to: {payout.payout_account.account_name} · {payout.payout_account.bank_name} · •••• {payout.payout_account.account_last4}</small>}
+            {!payout.payout_account && <small className="admin-payout-destination missing">No verified seller bank account is on file.</small>}
             <div className="admin-actions"><button disabled={!!busyId} onClick={() => void recordPayout('seller',payout.id,'processing')}>Mark processing</button><button className="approve" disabled={!!busyId || (!!payout.eligible_at && new Date(payout.eligible_at) > new Date())} onClick={() => void recordPayout('seller',payout.id,'succeeded')}>Record paid</button><button disabled={!!busyId} onClick={() => void recordPayout('seller',payout.id,'failed')}>Failed</button></div>
           </article>)}
           <div className="dashboard-empty"><b>Delivery-agent payouts</b><span>₦1,000 is allocated to the agent after verified handover. Record manual transfers within 24 hours.</span></div>
@@ -204,7 +232,8 @@ export default function AdminPanel({ db, onClose }: AdminPanelProps) {
           <div className="admin-actions">{report.status === 'pending' && <button disabled={!!busyId} onClick={() => void act('review_report', report.id, 'reviewing')}>Mark reviewing</button>}<button disabled={!!busyId} onClick={() => void act('review_report', report.id, 'dismissed')}>Dismiss</button><button className="approve" disabled={!!busyId} onClick={() => void act('review_report', report.id, 'resolved')}>{busyId === report.id ? 'Saving…' : 'Resolve report'}</button></div>
         </article>) : <div className="dashboard-empty"><b>No open safety reports.</b><span>New buyer reports will appear here.</span></div>}
       </div>
-      <div className="admin-footer"><small>Actions are checked on the server. A decision is applied only when the record is still in the expected review state.</small><button className="confirmation-secondary" disabled={loading || !!busyId} onClick={() => void loadQueue()}>Refresh queue</button></div>
+        <div className="admin-footer"><small>Actions are checked on the server. A decision is applied only when the record is still in the expected review state.</small><button className="confirmation-secondary" disabled={loading || !!busyId} onClick={() => void loadQueue()}>Refresh queue</button></div>
+      </main>
     </section>
   </div>
 }

@@ -27,6 +27,10 @@ function OrderChat({db,user,orderId,onBack,onToast}:{db:SupabaseClient;user:Chat
   const [draft,setDraft] = useState('')
   const [loading,setLoading] = useState(true)
   const [sending,setSending] = useState(false)
+  const [supportOpen,setSupportOpen] = useState(false)
+  const [supportDetails,setSupportDetails] = useState('')
+  const [supportBusy,setSupportBusy] = useState(false)
+  const [supportSubmitted,setSupportSubmitted] = useState(false)
   const load = useCallback(async () => {
     const results = await Promise.all([
       db.from('orders').select('id,public_order_number,order_status,payment_status,buyer_id,vendor_id,created_at,buyer_contact_snapshot,vendor:vendors(shop_name,profile_id)').eq('id',orderId).maybeSingle(),
@@ -78,9 +82,24 @@ function OrderChat({db,user,orderId,onBack,onToast}:{db:SupabaseClient;user:Chat
   }
   const isBuyer=order?.buyer_id===user.id
   const otherName=isBuyer?(order?.vendor?.shop_name||'Seller'):(order?.buyer_contact_snapshot?.name||'Buyer')
+  async function contactSupport(event:FormEvent) {
+    event.preventDefault()
+    if (!order || supportBusy || supportDetails.trim().length < 20) return
+    setSupportBusy(true)
+    const { data, error } = await db.functions.invoke('order-support', { body: { order_id: order.id, details: supportDetails.trim() } })
+    if (error || data?.error) onToast(data?.error || error?.message || 'Could not contact tradR Support.')
+    else {
+      setSupportSubmitted(true); setSupportOpen(false); setSupportDetails('')
+      onToast(data?.already_open ? 'This order already has an open support case.' : 'Support case opened. Your order chat is available to the review team.')
+      await load()
+    }
+    setSupportBusy(false)
+  }
   return <section className="order-chat-view" aria-label="Order chat">
-    <header className="order-chat-header"><button type="button" className="order-chat-back" onClick={onBack} aria-label="Back to inbox">←</button><div><span className="eyebrow">ORDER CONVERSATION</span><b>{otherName}</b><small>{order?.public_order_number||'Loading order…'} · {statusLabels[order?.order_status||'']||order?.order_status}</small></div></header>
-    {loading?<div className="order-chat-empty">Opening your conversation…</div>:<div className="order-chat-timeline"><div className="order-chat-intro"><b>Keep everything about this order here.</b><span>Messages are private to the buyer and this shop.</span></div>
+    <header className="order-chat-header"><button type="button" className="order-chat-back" onClick={onBack} aria-label="Back to inbox">←</button><div><span className="eyebrow">ORDER CONVERSATION</span><b>{otherName}</b><small>{order?.public_order_number||'Loading order…'} · {statusLabels[order?.order_status||'']||order?.order_status}</small></div><button type="button" className="order-chat-support" onClick={()=>setSupportOpen(value=>!value)} disabled={!order || supportBusy}>Call support</button></header>
+    {supportSubmitted && <div className="order-chat-support-notice"><b>Support case opened</b><span>Authorized tradR. staff may review this order conversation while investigating. Seller payout is paused until the case is closed.</span></div>}
+    {supportOpen && <form className="order-chat-support-form" onSubmit={contactSupport}><b>What should our support team investigate?</b><textarea value={supportDetails} onChange={event=>setSupportDetails(event.target.value)} minLength={20} maxLength={3000} rows={3} placeholder="Explain what happened with this order. Include relevant dates or promises." required/><small>At least 20 characters. Opening a case makes this order chat available to authorized admins for read-only review.</small><div><button type="button" onClick={()=>setSupportOpen(false)} disabled={supportBusy}>Cancel</button><button type="submit" disabled={supportBusy||supportDetails.trim().length<20}>{supportBusy?'Opening case…':'Send to tradR Support'}</button></div></form>}
+    {loading?<div className="order-chat-empty">Opening your conversation…</div>:<div className="order-chat-timeline"><div className="order-chat-intro"><b>Keep everything about this order here.</b><span>Private to the buyer and seller unless either person asks tradR. Support to investigate.</span></div>
       {timeline.length?timeline.map(entry=>entry.kind==='event'
         ?<div className="order-chat-system" key={'event-'+entry.item.id}><span>{eventText(entry.item)}</span><small>{formatTime(entry.at)}</small></div>
         :<article className={entry.item.sender_id===user.id?'order-chat-message mine':'order-chat-message'} key={'message-'+entry.item.id}><span>{entry.item.sender_id===user.id?'You':otherName}</span><p>{entry.item.body}</p><small>{formatTime(entry.at)}{entry.item.sender_id===user.id&&entry.item.recipient_read_at?' · Seen':''}</small></article>

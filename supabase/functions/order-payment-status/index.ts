@@ -18,7 +18,8 @@ Deno.serve(async (req: Request) => {
 
     const { data: payment, error: paymentError } = await admin.from("order_payments")
       .select("id,order_id,provider_reference,amount_kobo,currency,status,created_at")
-      .eq("provider_reference", reference).eq("provider", "paystack").maybeSingle();
+      .eq("provider_reference", reference).eq("provider", "paystack")
+      .order("created_at", { ascending: true }).limit(1).maybeSingle();
     if (paymentError) throw paymentError;
     if (!payment) return respond({ error: "This order payment was not found." }, 404);
     const { data: order, error: orderError } = await admin.from("orders")

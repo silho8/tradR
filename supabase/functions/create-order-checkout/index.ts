@@ -63,6 +63,7 @@ Deno.serve(async (req: Request) => {
       console.error("create_order_checkout RPC:", checkoutError.message);
       const knownMessages = [
         "Only an approved shop can be used for checkout",
+        "This seller has not completed payout setup yet",
         "An item in your cart is no longer available",
         "Your cart is empty",
         "Your active cart could not be found",

@@ -1,0 +1,5071 @@
+[
+  {
+    "command": "frame.create",
+    "as": "home",
+    "params": {
+      "name": "01 · Mobile marketplace home",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 24,
+        "clip": true
+      }
+    }
+  },
+  {
+    "command": "image.place",
+    "params": {
+      "path": "/home/okikiola/Projects/tradR/design/figcraft/tradr-mark.png",
+      "name": "Official tradR. brand mark",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 20,
+      "y": 48,
+      "width": 32,
+      "height": 32,
+      "mode": "fit"
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Top campus strip",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 30,
+      "props": {
+        "fill": "#102A43",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Campus strip text",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "MADE FOR THE LEAD CITY COMMUNITY",
+      "x": 20,
+      "y": 9,
+      "width": 350,
+      "height": 14,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 9,
+        "fontStyle": "Bold",
+        "fill": "#FFFFFF",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "tradR wordmark",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "tradR.",
+      "x": 62,
+      "y": 51,
+      "width": 130,
+      "height": 34,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 27,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Campus selector",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "LEAD CITY  ▾",
+      "x": 226,
+      "y": 58,
+      "width": 144,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "SemiBold",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Search field",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 20,
+      "y": 101,
+      "width": 350,
+      "height": 48,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Search icon",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "⌕",
+      "x": 34,
+      "y": 111,
+      "width": 24,
+      "height": 28,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 24,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Search placeholder",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Search products, shops...",
+      "x": 66,
+      "y": 118,
+      "width": 270,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Categories heading",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Browse categories",
+      "x": 20,
+      "y": 174,
+      "width": 250,
+      "height": 24,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 17,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chip All",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 20,
+      "y": 211,
+      "width": 50,
+      "height": 34,
+      "props": {
+        "fill": "#102A43",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chip label All",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "All",
+      "x": 30,
+      "y": 219,
+      "width": 30,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#FFFFFF",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chip Fashion",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 78,
+      "y": 211,
+      "width": 78,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chip label Fashion",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Fashion",
+      "x": 88,
+      "y": 219,
+      "width": 58,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chip Electronics",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 164,
+      "y": 211,
+      "width": 100,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chip label Electronics",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Electronics",
+      "x": 174,
+      "y": 219,
+      "width": 80,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chip Food",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 272,
+      "y": 211,
+      "width": 58,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chip label Food",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Food",
+      "x": 282,
+      "y": 219,
+      "width": 38,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chip Books",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 338,
+      "y": 211,
+      "width": 52,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chip label Books",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Books",
+      "x": 348,
+      "y": 219,
+      "width": 32,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Fresh finds heading",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Fresh on campus",
+      "x": 20,
+      "y": 273,
+      "width": 250,
+      "height": 24,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 18,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Fresh finds subtitle",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Good finds from your campus community",
+      "x": 20,
+      "y": 300,
+      "width": 330,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Product visual Everyday tote bag",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 20,
+      "y": 332,
+      "width": 156,
+      "height": 112,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product icon Everyday tote bag",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "✦",
+      "x": 82,
+      "y": 367,
+      "width": 32,
+      "height": 36,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 28,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product name Everyday tote bag",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Everyday tote bag",
+      "x": 20,
+      "y": 452,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product price Everyday tote bag",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "₦8,500",
+      "x": 20,
+      "y": 475,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product tag Everyday tote bag",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Fashion  ·  New",
+      "x": 20,
+      "y": 496,
+      "width": 156,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Product visual Wireless earbuds",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 214,
+      "y": 332,
+      "width": 156,
+      "height": 112,
+      "props": {
+        "fill": "#E6EDF0",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product icon Wireless earbuds",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "✦",
+      "x": 276,
+      "y": 367,
+      "width": 32,
+      "height": 36,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 28,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product name Wireless earbuds",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Wireless earbuds",
+      "x": 214,
+      "y": 452,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product price Wireless earbuds",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "₦18,000",
+      "x": 214,
+      "y": 475,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product tag Wireless earbuds",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Electronics  ·  Used",
+      "x": 214,
+      "y": 496,
+      "width": 156,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Product visual Vintage denim jacket",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 20,
+      "y": 536,
+      "width": 156,
+      "height": 112,
+      "props": {
+        "fill": "#F1E9DF",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product icon Vintage denim jacket",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "✦",
+      "x": 82,
+      "y": 571,
+      "width": 32,
+      "height": 36,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 28,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product name Vintage denim jacket",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Vintage denim jacket",
+      "x": 20,
+      "y": 656,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product price Vintage denim jacket",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "₦12,000",
+      "x": 20,
+      "y": 679,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product tag Vintage denim jacket",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Fashion  ·  Like new",
+      "x": 20,
+      "y": 700,
+      "width": 156,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Product visual Study desk lamp",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 214,
+      "y": 536,
+      "width": 156,
+      "height": 112,
+      "props": {
+        "fill": "#EDE9F4",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product icon Study desk lamp",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "✦",
+      "x": 276,
+      "y": 571,
+      "width": 32,
+      "height": 36,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 28,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product name Study desk lamp",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Study desk lamp",
+      "x": 214,
+      "y": 656,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product price Study desk lamp",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "₦9,500",
+      "x": 214,
+      "y": 679,
+      "width": 156,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product tag Study desk lamp",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "Home  ·  New",
+      "x": 214,
+      "y": 700,
+      "width": 156,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Bottom nav",
+      "parent": {
+        "$ref": "home"
+      },
+      "x": 0,
+      "y": 780,
+      "width": 390,
+      "height": 64,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 0,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Nav Home",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "⌂\nHome",
+      "x": 24,
+      "y": 791,
+      "width": 54,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Nav Search",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "⌕\nSearch",
+      "x": 112,
+      "y": 791,
+      "width": 54,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Nav Cart",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "▣\nCart",
+      "x": 211,
+      "y": 791,
+      "width": 54,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Nav Saved",
+      "parent": {
+        "$ref": "home"
+      },
+      "text": "♡\nSaved",
+      "x": 302,
+      "y": 791,
+      "width": 64,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "frame.create",
+    "as": "detail",
+    "params": {
+      "name": "02 · Mobile product detail",
+      "x": 460,
+      "y": 0,
+      "width": 390,
+      "height": 844,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 24,
+        "clip": true
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Back",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "‹  Back",
+      "x": 20,
+      "y": 28,
+      "width": 90,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Product hero image",
+      "parent": {
+        "$ref": "detail"
+      },
+      "x": 20,
+      "y": 72,
+      "width": 350,
+      "height": 310,
+      "props": {
+        "fill": "#E6EDF0",
+        "cornerRadius": 20
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product hero symbol",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "✦",
+      "x": 145,
+      "y": 176,
+      "width": 100,
+      "height": 80,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 70,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product title",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "Wireless earbuds",
+      "x": 20,
+      "y": 405,
+      "width": 350,
+      "height": 30,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 22,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product price",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "₦18,000",
+      "x": 20,
+      "y": 442,
+      "width": 180,
+      "height": 28,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 20,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chip Available now",
+      "parent": {
+        "$ref": "detail"
+      },
+      "x": 20,
+      "y": 486,
+      "width": 116,
+      "height": 34,
+      "props": {
+        "fill": "#102A43",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chip label Available now",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "Available now",
+      "x": 30,
+      "y": 494,
+      "width": 96,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#FFFFFF",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Product description",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "Clear sound, compact case and a reliable battery. Add it to your cart and complete checkout securely on tradR.",
+      "x": 20,
+      "y": 535,
+      "width": 350,
+      "height": 56,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Regular",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Seller card",
+      "parent": {
+        "$ref": "detail"
+      },
+      "x": 20,
+      "y": 610,
+      "width": 350,
+      "height": 76,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Seller avatar",
+      "parent": {
+        "$ref": "detail"
+      },
+      "x": 34,
+      "y": 625,
+      "width": 44,
+      "height": 44,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 22
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Seller initials",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "AO",
+      "x": 44,
+      "y": 637,
+      "width": 28,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Seller name",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "Ayo's Tech Corner",
+      "x": 90,
+      "y": 625,
+      "width": 200,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Seller meta",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "Lead City seller · Active today",
+      "x": 90,
+      "y": 650,
+      "width": 220,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Add to cart button",
+      "parent": {
+        "$ref": "detail"
+      },
+      "x": 20,
+      "y": 714,
+      "width": 350,
+      "height": 54,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 16
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Add to cart label",
+      "parent": {
+        "$ref": "detail"
+      },
+      "text": "Add to cart",
+      "x": 48,
+      "y": 732,
+      "width": 300,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "frame.create",
+    "as": "shop",
+    "params": {
+      "name": "03 · Mobile seller dashboard",
+      "x": 920,
+      "y": 0,
+      "width": 390,
+      "height": 844,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 24,
+        "clip": true
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop greeting",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Good afternoon,",
+      "x": 20,
+      "y": 36,
+      "width": 220,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop name",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Ayo's Tech Corner",
+      "x": 20,
+      "y": 61,
+      "width": 320,
+      "height": 30,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 22,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop status",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "YOUR SHOP IS LIVE",
+      "x": 20,
+      "y": 101,
+      "width": 220,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#4D6B3A",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Add listing button",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 20,
+      "y": 138,
+      "width": 350,
+      "height": 50,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Add listing label",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "+  Add a listing",
+      "x": 125,
+      "y": 154,
+      "width": 180,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Stats card",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 20,
+      "y": 211,
+      "width": 350,
+      "height": 100,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Active listings stat",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "12",
+      "x": 40,
+      "y": 230,
+      "width": 80,
+      "height": 34,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 27,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Active listings label",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Active listings",
+      "x": 40,
+      "y": 271,
+      "width": 110,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Views stat",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "348",
+      "x": 170,
+      "y": 230,
+      "width": 80,
+      "height": 34,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 27,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Views label",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Product views",
+      "x": 170,
+      "y": 271,
+      "width": 110,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing section",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Your listings",
+      "x": 20,
+      "y": 340,
+      "width": 220,
+      "height": 26,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 18,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Manage link",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Manage all  →",
+      "x": 272,
+      "y": 345,
+      "width": 98,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "SemiBold",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Listing row 1",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 20,
+      "y": 382,
+      "width": 350,
+      "height": 96,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Listing thumb 1",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 32,
+      "y": 394,
+      "width": 72,
+      "height": 72,
+      "props": {
+        "fill": "#E6EDF0",
+        "cornerRadius": 10
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing title 1",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Wireless earbuds",
+      "x": 118,
+      "y": 402,
+      "width": 210,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing price 1",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "₦18,000",
+      "x": 118,
+      "y": 428,
+      "width": 120,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing state 1",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Active  ·  Edit",
+      "x": 118,
+      "y": 450,
+      "width": 180,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Listing row 2",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 20,
+      "y": 494,
+      "width": 350,
+      "height": 96,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Listing thumb 2",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 32,
+      "y": 506,
+      "width": 72,
+      "height": 72,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 10
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing title 2",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Everyday tote bag",
+      "x": 118,
+      "y": 514,
+      "width": 210,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing price 2",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "₦8,500",
+      "x": 118,
+      "y": 540,
+      "width": 120,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing state 2",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Active  ·  Edit",
+      "x": 118,
+      "y": 562,
+      "width": 180,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Listing row 3",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 20,
+      "y": 606,
+      "width": 350,
+      "height": 96,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Listing thumb 3",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 32,
+      "y": 618,
+      "width": 72,
+      "height": 72,
+      "props": {
+        "fill": "#F1E9DF",
+        "cornerRadius": 10
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing title 3",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Vintage denim jacket",
+      "x": 118,
+      "y": 626,
+      "width": 210,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing price 3",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "₦12,000",
+      "x": 118,
+      "y": 652,
+      "width": 120,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Listing state 3",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "Active  ·  Edit",
+      "x": 118,
+      "y": 674,
+      "width": 180,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Shop bottom nav",
+      "parent": {
+        "$ref": "shop"
+      },
+      "x": 0,
+      "y": 780,
+      "width": 390,
+      "height": 64,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 0,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop nav home",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "⌂\nHome",
+      "x": 24,
+      "y": 791,
+      "width": 54,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop nav search",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "⌕\nSearch",
+      "x": 112,
+      "y": 791,
+      "width": 54,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop nav cart",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "▣\nCart",
+      "x": 211,
+      "y": 791,
+      "width": 54,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Shop nav saved",
+      "parent": {
+        "$ref": "shop"
+      },
+      "text": "♡\nSaved",
+      "x": 302,
+      "y": 791,
+      "width": 64,
+      "height": 42,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "frame.create",
+    "as": "admin",
+    "params": {
+      "name": "04 · Desktop admin moderation",
+      "x": 1400,
+      "y": 0,
+      "width": 1440,
+      "height": 1000,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 24,
+        "clip": true
+      }
+    }
+  },
+  {
+    "command": "image.place",
+    "params": {
+      "path": "/home/okikiola/Projects/tradR/design/figcraft/tradr-mark.png",
+      "name": "Official tradR. brand mark",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 28,
+      "y": 30,
+      "width": 40,
+      "height": 40,
+      "mode": "fit"
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Admin sidebar",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 0,
+      "y": 0,
+      "width": 250,
+      "height": 1000,
+      "props": {
+        "fill": "#102A43",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin logo",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "tradR.",
+      "x": 78,
+      "y": 36,
+      "width": 130,
+      "height": 38,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 28,
+        "fontStyle": "Bold",
+        "fill": "#FFFFFF",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin subtitle",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "ADMIN WORKSPACE",
+      "x": 28,
+      "y": 82,
+      "width": 190,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#C8F169",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav overview",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "▦   Overview",
+      "x": 28,
+      "y": 150,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#FFFFFF",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav listings",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "▤   Listings",
+      "x": 28,
+      "y": 204,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Medium",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav shops",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "▣   Shops",
+      "x": 28,
+      "y": 258,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Medium",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav reports",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "⚑   Reports",
+      "x": 28,
+      "y": 312,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Medium",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav delivery",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "⇢   Delivery agents",
+      "x": 28,
+      "y": 366,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Medium",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav notifications",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "◉   Notifications",
+      "x": 28,
+      "y": 420,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Medium",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin nav settings",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "⚙   Settings",
+      "x": 28,
+      "y": 474,
+      "width": 190,
+      "height": 24,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Medium",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin footer",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "tradR. · Lead City\nMarketplace operations",
+      "x": 28,
+      "y": 910,
+      "width": 190,
+      "height": 48,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Regular",
+        "fill": "#B8C7D0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin page title",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Marketplace overview",
+      "x": 294,
+      "y": 42,
+      "width": 700,
+      "height": 38,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 28,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin page subtitle",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Keep an eye on listings, shops and campus activity.",
+      "x": 294,
+      "y": 88,
+      "width": 700,
+      "height": 22,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Admin user pill",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1204,
+      "y": 38,
+      "width": 200,
+      "height": 46,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin user label",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Admin account  ▾",
+      "x": 1230,
+      "y": 53,
+      "width": 160,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Metric Active listings",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 294,
+      "y": 146,
+      "width": 250,
+      "height": 126,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric label Active listings",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Active listings",
+      "x": 312,
+      "y": 166,
+      "width": 210,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric value Active listings",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "1,284",
+      "x": 312,
+      "y": 195,
+      "width": 210,
+      "height": 38,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 29,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric note Active listings",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "+8.4% this week",
+      "x": 312,
+      "y": 242,
+      "width": 210,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#4D6B3A",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Metric Live shops",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 568,
+      "y": 146,
+      "width": 250,
+      "height": 126,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric label Live shops",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Live shops",
+      "x": 586,
+      "y": 166,
+      "width": 210,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric value Live shops",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "216",
+      "x": 586,
+      "y": 195,
+      "width": 210,
+      "height": 38,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 29,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric note Live shops",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "+12 this month",
+      "x": 586,
+      "y": 242,
+      "width": 210,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#4D6B3A",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Metric Open reports",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 842,
+      "y": 146,
+      "width": 250,
+      "height": 126,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric label Open reports",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Open reports",
+      "x": 860,
+      "y": 166,
+      "width": 210,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric value Open reports",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "7",
+      "x": 860,
+      "y": 195,
+      "width": 210,
+      "height": 38,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 29,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric note Open reports",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Needs review",
+      "x": 860,
+      "y": 242,
+      "width": 210,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#A45A32",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Metric Delivery agents",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1116,
+      "y": 146,
+      "width": 250,
+      "height": 126,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric label Delivery agents",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Delivery agents",
+      "x": 1134,
+      "y": 166,
+      "width": 210,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric value Delivery agents",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "18",
+      "x": 1134,
+      "y": 195,
+      "width": 210,
+      "height": 38,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 29,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Metric note Delivery agents",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "3 currently active",
+      "x": 1134,
+      "y": 242,
+      "width": 210,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Medium",
+        "fill": "#4D6B3A",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Moderation title",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Recent listing reports",
+      "x": 294,
+      "y": 318,
+      "width": 520,
+      "height": 28,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 19,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Moderation subtitle",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Review reported items and take action when needed.",
+      "x": 294,
+      "y": 350,
+      "width": 600,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Reports table",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 294,
+      "y": 386,
+      "width": 820,
+      "height": 430,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Reports header",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 294,
+      "y": 386,
+      "width": 820,
+      "height": 48,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Table header listing",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "LISTING",
+      "x": 316,
+      "y": 402,
+      "width": 220,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Table header seller",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "SELLER",
+      "x": 564,
+      "y": 402,
+      "width": 180,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Table header reason",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "REPORT REASON",
+      "x": 744,
+      "y": 402,
+      "width": 190,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Table header action",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "ACTION",
+      "x": 1000,
+      "y": 402,
+      "width": 90,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Reported listing 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Replica jersey",
+      "x": 316,
+      "y": 454,
+      "width": 220,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Reported seller 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Tobi Stores",
+      "x": 564,
+      "y": 454,
+      "width": 170,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Report reason 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Misleading item",
+      "x": 744,
+      "y": 454,
+      "width": 210,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Review action 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 982,
+      "y": 449,
+      "width": 108,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 10
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Review label 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Review",
+      "x": 1007,
+      "y": 458,
+      "width": 70,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Row divider 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 314,
+      "y": 516,
+      "width": 780,
+      "height": 1,
+      "props": {
+        "fill": "#E8ECE6",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Reported listing 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Unclear product photo",
+      "x": 316,
+      "y": 566,
+      "width": 220,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Reported seller 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Mira Finds",
+      "x": 564,
+      "y": 566,
+      "width": 170,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Report reason 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Inappropriate image",
+      "x": 744,
+      "y": 566,
+      "width": 210,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Review action 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 982,
+      "y": 561,
+      "width": 108,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 10
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Review label 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Review",
+      "x": 1007,
+      "y": 570,
+      "width": 70,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Row divider 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 314,
+      "y": 628,
+      "width": 780,
+      "height": 1,
+      "props": {
+        "fill": "#E8ECE6",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Reported listing 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Expired food listing",
+      "x": 316,
+      "y": 678,
+      "width": 220,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Reported seller 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Campus Bites",
+      "x": 564,
+      "y": 678,
+      "width": 170,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Medium",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Report reason 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Outdated listing",
+      "x": 744,
+      "y": 678,
+      "width": 210,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Review action 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 982,
+      "y": 673,
+      "width": 108,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 10
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Review label 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Review",
+      "x": 1007,
+      "y": 682,
+      "width": 70,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Row divider 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 314,
+      "y": 740,
+      "width": 780,
+      "height": 1,
+      "props": {
+        "fill": "#E8ECE6",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Admin side panel",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1140,
+      "y": 318,
+      "width": 264,
+      "height": 498,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Quick actions heading",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Quick actions",
+      "x": 1162,
+      "y": 342,
+      "width": 210,
+      "height": 24,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 17,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Quick action 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1160,
+      "y": 390,
+      "width": 224,
+      "height": 54,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 12
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Quick action label 0",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "View all reports",
+      "x": 1176,
+      "y": 409,
+      "width": 195,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Quick action 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1160,
+      "y": 462,
+      "width": 224,
+      "height": 54,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 12
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Quick action label 1",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Manage shops",
+      "x": 1176,
+      "y": 481,
+      "width": 195,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Quick action 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1160,
+      "y": 534,
+      "width": 224,
+      "height": 54,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 12
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Quick action label 2",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Review delivery agents",
+      "x": 1176,
+      "y": 553,
+      "width": 195,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Quick action 3",
+      "parent": {
+        "$ref": "admin"
+      },
+      "x": 1160,
+      "y": 606,
+      "width": 224,
+      "height": 54,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 12
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Quick action label 3",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "Send announcement",
+      "x": 1176,
+      "y": 625,
+      "width": 195,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Admin footer note",
+      "parent": {
+        "$ref": "admin"
+      },
+      "text": "New shops can publish immediately. Moderation remains available here.",
+      "x": 294,
+      "y": 858,
+      "width": 850,
+      "height": 22,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "frame.create",
+    "as": "cart",
+    "params": {
+      "name": "05 · Mobile cart and secure checkout",
+      "x": 2900,
+      "y": 1120,
+      "width": 390,
+      "height": 844,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 24,
+        "clip": true
+      }
+    }
+  },
+  {
+    "command": "image.place",
+    "params": {
+      "path": "/home/okikiola/Projects/tradR/design/figcraft/tradr-mark.png",
+      "name": "Official tradR. mark · checkout",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 20,
+      "y": 42,
+      "width": 30,
+      "height": 30,
+      "mode": "fit"
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart wordmark",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "tradR.",
+      "x": 58,
+      "y": 44,
+      "width": 120,
+      "height": 32,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 24,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart count",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "YOUR CART  ·  2 ITEMS",
+      "x": 20,
+      "y": 94,
+      "width": 250,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart title",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Ready when you are.",
+      "x": 20,
+      "y": 120,
+      "width": 340,
+      "height": 34,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 24,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart subtitle",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Review your picks before secure checkout.",
+      "x": 20,
+      "y": 158,
+      "width": 340,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Cart item one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 20,
+      "y": 194,
+      "width": 350,
+      "height": 104,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Cart image one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 32,
+      "y": 206,
+      "width": 78,
+      "height": 80,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 12
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart image glyph one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "✦",
+      "x": 58,
+      "y": 229,
+      "width": 28,
+      "height": 30,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 24,
+        "fontStyle": "Regular",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart item title one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Wireless earbuds",
+      "x": 124,
+      "y": 210,
+      "width": 220,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart item meta one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Mira Finds  ·  Electronics",
+      "x": 124,
+      "y": 235,
+      "width": 220,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart item price one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "₦18,000",
+      "x": 124,
+      "y": 258,
+      "width": 140,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart quantity one",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "−    1    +",
+      "x": 300,
+      "y": 261,
+      "width": 58,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Cart item two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 20,
+      "y": 310,
+      "width": 350,
+      "height": 104,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Cart image two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 32,
+      "y": 322,
+      "width": 78,
+      "height": 80,
+      "props": {
+        "fill": "#F1E9DF",
+        "cornerRadius": 12
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart image glyph two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "✦",
+      "x": 58,
+      "y": 345,
+      "width": 28,
+      "height": 30,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 24,
+        "fontStyle": "Regular",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart item title two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Vintage denim jacket",
+      "x": 124,
+      "y": 326,
+      "width": 220,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart item meta two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Tobi Stores  ·  Fashion",
+      "x": 124,
+      "y": 351,
+      "width": 220,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart item price two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "₦12,000",
+      "x": 124,
+      "y": 374,
+      "width": 140,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Cart quantity two",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "−    1    +",
+      "x": 300,
+      "y": 377,
+      "width": 58,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Delivery heading",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Delivery",
+      "x": 20,
+      "y": 440,
+      "width": 200,
+      "height": 22,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 16,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Delivery option",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 20,
+      "y": 472,
+      "width": 350,
+      "height": 66,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#C8F169",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Delivery option title",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Campus delivery",
+      "x": 36,
+      "y": 484,
+      "width": 200,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Delivery option note",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "₦1,000  ·  Delivered to your campus location",
+      "x": 36,
+      "y": 507,
+      "width": 320,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Order summary",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 20,
+      "y": 558,
+      "width": 350,
+      "height": 154,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 16,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Summary heading",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Order summary",
+      "x": 36,
+      "y": 575,
+      "width": 220,
+      "height": 22,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 15,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Subtotal label",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Subtotal",
+      "x": 36,
+      "y": 610,
+      "width": 180,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Subtotal value",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "₦30,000",
+      "x": 278,
+      "y": 610,
+      "width": 74,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Delivery fee label",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Delivery",
+      "x": 36,
+      "y": 635,
+      "width": 180,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Delivery fee value",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "₦1,000",
+      "x": 278,
+      "y": 635,
+      "width": 74,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Summary divider",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 36,
+      "y": 661,
+      "width": 316,
+      "height": 1,
+      "props": {
+        "fill": "#E8ECE6",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Total label",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Total",
+      "x": 36,
+      "y": 676,
+      "width": 180,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Total value",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "₦31,000",
+      "x": 260,
+      "y": 676,
+      "width": 92,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 14,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Pay button",
+      "parent": {
+        "$ref": "cart"
+      },
+      "x": 20,
+      "y": 732,
+      "width": 350,
+      "height": 54,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 16
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Pay button label",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "Continue to secure payment  →",
+      "x": 42,
+      "y": 750,
+      "width": 310,
+      "height": 20,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Secure note",
+      "parent": {
+        "$ref": "cart"
+      },
+      "text": "🔒  Payments protected by Paystack",
+      "x": 56,
+      "y": 800,
+      "width": 280,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "frame.create",
+    "as": "order",
+    "params": {
+      "name": "06 · Mobile order tracking and private chat",
+      "x": 3360,
+      "y": 1120,
+      "width": 390,
+      "height": 844,
+      "props": {
+        "fill": "#F7F8F4",
+        "cornerRadius": 24,
+        "clip": true
+      }
+    }
+  },
+  {
+    "command": "image.place",
+    "params": {
+      "path": "/home/okikiola/Projects/tradR/design/figcraft/tradr-mark.png",
+      "name": "Official tradR. mark · order",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 20,
+      "y": 42,
+      "width": 30,
+      "height": 30,
+      "mode": "fit"
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order wordmark",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "tradR.",
+      "x": 58,
+      "y": 44,
+      "width": 120,
+      "height": 32,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 24,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order label",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "ORDER  ·  #TR-2048",
+      "x": 20,
+      "y": 94,
+      "width": 250,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Bold",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order title",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Your order is moving.",
+      "x": 20,
+      "y": 120,
+      "width": 340,
+      "height": 34,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 23,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Order status card",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 20,
+      "y": 172,
+      "width": 350,
+      "height": 152,
+      "props": {
+        "fill": "#102A43",
+        "cornerRadius": 18
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order status eyebrow",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "CURRENT STATUS",
+      "x": 38,
+      "y": 192,
+      "width": 220,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 9,
+        "fontStyle": "Bold",
+        "fill": "#C8F169",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order status",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Out for delivery",
+      "x": 38,
+      "y": 218,
+      "width": 280,
+      "height": 28,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 21,
+        "fontStyle": "Bold",
+        "fill": "#FFFFFF",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order eta",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Your campus delivery is on its way.",
+      "x": 38,
+      "y": 255,
+      "width": 300,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 11,
+        "fontStyle": "Regular",
+        "fill": "#E6EDF0",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Order code",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "TRACKING  ·  TR-2048",
+      "x": 38,
+      "y": 290,
+      "width": 250,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 9,
+        "fontStyle": "Bold",
+        "fill": "#C8F169",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress heading",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Delivery progress",
+      "x": 20,
+      "y": 350,
+      "width": 240,
+      "height": 22,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 16,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Progress rail",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 42,
+      "y": 400,
+      "width": 2,
+      "height": 1,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 0
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Progress dot Order confirmed",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 34,
+      "y": 386,
+      "width": 18,
+      "height": 18,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 9,
+        "stroke": "#C8F169",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress title Order confirmed",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Order confirmed",
+      "x": 66,
+      "y": 384,
+      "width": 250,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress detail Order confirmed",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Payment received",
+      "x": 66,
+      "y": 404,
+      "width": 270,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Progress dot Seller preparing",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 34,
+      "y": 440,
+      "width": 18,
+      "height": 18,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 9,
+        "stroke": "#C8F169",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress title Seller preparing",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Seller preparing",
+      "x": 66,
+      "y": 438,
+      "width": 250,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress detail Seller preparing",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Your items are being packed",
+      "x": 66,
+      "y": 458,
+      "width": 270,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Progress dot Picked up",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 34,
+      "y": 494,
+      "width": 18,
+      "height": 18,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 9,
+        "stroke": "#C8F169",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress title Picked up",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Picked up",
+      "x": 66,
+      "y": 492,
+      "width": 250,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress detail Picked up",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Delivery agent has your order",
+      "x": 66,
+      "y": 512,
+      "width": 270,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Progress dot Delivered",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 34,
+      "y": 548,
+      "width": 18,
+      "height": 18,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 9,
+        "stroke": "#B8C5BD",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress title Delivered",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Delivered",
+      "x": 66,
+      "y": 546,
+      "width": 250,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Progress detail Delivered",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Confirm when your order arrives",
+      "x": 66,
+      "y": 566,
+      "width": 270,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chat heading",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Order chat",
+      "x": 20,
+      "y": 604,
+      "width": 220,
+      "height": 22,
+      "props": {
+        "fontFamily": "Montserrat",
+        "fontSize": 16,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chat note",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Private conversation with your seller and delivery agent",
+      "x": 20,
+      "y": 631,
+      "width": 340,
+      "height": 16,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chat preview",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 20,
+      "y": 660,
+      "width": 350,
+      "height": 76,
+      "props": {
+        "fill": "#FFFFFF",
+        "cornerRadius": 14,
+        "stroke": "#DCE4DB",
+        "strokeWeight": 1
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Chat avatar",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 34,
+      "y": 676,
+      "width": 34,
+      "height": 34,
+      "props": {
+        "fill": "#E9EFDC",
+        "cornerRadius": 17
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chat avatar glyph",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "M",
+      "x": 45,
+      "y": 684,
+      "width": 16,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "Bold",
+        "fill": "#36505B",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chat sender",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Mira Finds",
+      "x": 80,
+      "y": 672,
+      "width": 220,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "fontStyle": "SemiBold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Chat message",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "I’ve handed your package to the rider.",
+      "x": 80,
+      "y": 695,
+      "width": 260,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 10,
+        "fontStyle": "Regular",
+        "fill": "#697A85",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "rectangle",
+      "name": "Open chat button",
+      "parent": {
+        "$ref": "order"
+      },
+      "x": 20,
+      "y": 754,
+      "width": 350,
+      "height": 50,
+      "props": {
+        "fill": "#C8F169",
+        "cornerRadius": 14
+      }
+    }
+  },
+  {
+    "command": "node.create",
+    "params": {
+      "type": "text",
+      "name": "Open chat label",
+      "parent": {
+        "$ref": "order"
+      },
+      "text": "Open order chat  →",
+      "x": 42,
+      "y": 770,
+      "width": 300,
+      "height": 18,
+      "props": {
+        "fontFamily": "Inter",
+        "fontSize": 13,
+        "fontStyle": "Bold",
+        "fill": "#102A43",
+        "textAutoResize": "height",
+        "lineHeight": "120%"
+      }
+    }
+  }
+]

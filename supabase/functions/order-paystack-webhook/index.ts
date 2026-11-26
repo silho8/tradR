@@ -35,7 +35,8 @@ Deno.serve(async (req: Request) => {
     const admin = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
     const { data: payment, error: paymentError } = await admin.from("order_payments")
       .select("id,provider_reference,amount_kobo,currency,status")
-      .eq("provider_reference", reference).eq("provider", "paystack").maybeSingle();
+      .eq("provider_reference", reference).eq("provider", "paystack")
+      .order("created_at", { ascending: true }).limit(1).maybeSingle();
     if (paymentError) throw paymentError;
     if (!payment) return respond({ error: "No matching order payment." }, 404);
     if (payment.status === "succeeded") return respond({ received: true, duplicate: true });
