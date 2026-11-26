@@ -266,10 +266,6 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
             <div className="cart-line-copy"><b>{line.listing?.title ?? 'Unavailable listing'}</b><strong>{money(Number(line.listing?.price_ngn ?? 0))}</strong><div className="cart-quantity"><button type="button" onClick={() => void updateQuantity(line, line.quantity - 1)} aria-label="Decrease quantity">−</button><span>{line.quantity}</span><button type="button" disabled={line.listing?.stock_quantity !== null && line.listing?.stock_quantity !== undefined && line.quantity >= line.listing.stock_quantity} onClick={() => void updateQuantity(line, line.quantity + 1)} aria-label="Increase quantity">+</button><button type="button" className="cart-remove" onClick={() => void updateQuantity(line, 0)}>Remove</button></div></div>
           </article>)}</div>
           <div className="cart-summary"><span>Items subtotal</span><b>{money(subtotal)}</b></div>
-          <div className="cart-delivery-choice"><b>How should this order reach you?</b>
-            <label><input type="radio" name="delivery-method" checked={deliveryMethod === 'seller'} onChange={() => setDeliveryMethod('seller')}/><span><strong>Seller fulfilment</strong><small>The shop will confirm collection or delivery details in your tradR order. No tradR delivery charge.</small></span></label>
-            <label><input type="radio" name="delivery-method" checked={deliveryMethod === 'tradr'} onChange={() => setDeliveryMethod('tradr')}/><span><strong>tradR agent delivery <em>₦1,000</em></strong><small>Our delivery agent brings your order to the address you provide.</small></span></label>
-          </div>
           <div className="cart-contact-fields">
             <label>Your name<input value={buyerName} onChange={event => setBuyerName(event.target.value)} placeholder="Full name" autoComplete="name"/></label>
             <label>Phone number<input value={buyerPhone} onChange={event => setBuyerPhone(event.target.value)} placeholder="08012345678" inputMode="tel" autoComplete="tel"/></label>
