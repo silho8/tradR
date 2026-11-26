@@ -30,16 +30,14 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
   const [lines, setLines] = useState<CartLine[]>([])
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [deliveryMethod, setDeliveryMethod] = useState<'seller' | 'tradr'>('seller')
   const [buyerName, setBuyerName] = useState('')
   const [buyerPhone, setBuyerPhone] = useState('')
-  const [deliveryAddress, setDeliveryAddress] = useState('')
   const [buyerNote, setBuyerNote] = useState('')
   const [paymentChecking, setPaymentChecking] = useState(false)
 
   const subtotal = useMemo(() => lines.reduce((sum, line) => sum + Number(line.listing?.price_ngn ?? 0) * line.quantity, 0), [lines])
-  const deliveryFee = deliveryMethod === 'tradr' ? 1000 : 0
-  const total = subtotal + deliveryFee
+  const shopCount = new Set(lines.map(line => line.listing?.vendor?.id).filter((id): id is string => Boolean(id))).size
+  const total = subtotal
   const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0)
 
   const loadCart = useCallback(async () => {
@@ -74,13 +72,11 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
       setLines([])
       setBuyerName('')
       setBuyerPhone('')
-      setDeliveryAddress('')
       setBuyerNote('')
       return
     }
     setBuyerName('')
     setBuyerPhone('')
-    setDeliveryAddress('')
     setBuyerNote('')
     void loadCart().catch(error => console.warn('Could not load cart:', error instanceof Error ? error.message : error))
     void db.from('profiles').select('display_name').eq('id', user.id).maybeSingle().then(({ data }) => {
@@ -112,13 +108,6 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
       if (cartError) throw cartError
 
       let targetCartId = activeCart?.id ?? ''
-      if (activeCart && activeCart.shop_id !== listing.vendor.id) {
-        const replace = window.confirm('Your cart has items from another shop. Clear it and start a new cart for this shop?')
-        if (!replace) return
-        const { error } = await db.from('carts').delete().eq('id', activeCart.id)
-        if (error) throw error
-        targetCartId = ''
-      }
       if (!targetCartId) {
         const { data: created, error } = await db.from('carts')
           .insert({ buyer_id: user.id, shop_id: listing.vendor.id })
@@ -171,7 +160,7 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
         if (error) throw error
         const result = data as { payment?: { status?: string }; order?: { public_order_number?: string; order_status?: string } }
         if (result.payment?.status === 'succeeded') {
-          onToast(`Payment confirmed for ${result.order?.public_order_number ?? 'your order'}. The shop will review it shortly.`)
+          onToast('Payment confirmed. Your separate shop orders are now available in Orders.')
         } else {
           onToast(`Payment status: ${result.payment?.status ?? 'pending'}. Check your order again shortly. Please do not pay twice.`)
         }
@@ -206,10 +195,6 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
       onToast('Enter your name and a valid phone number to continue.')
       return
     }
-    if (deliveryMethod === 'tradr' && deliveryAddress.trim().length < 5) {
-      onToast('Enter the address where our delivery agent should meet you.')
-      return
-    }
     setBusy(true)
     try {
       const storageKey = `tradr.checkout-key.${user.id}.${cartId}`
@@ -221,9 +206,9 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
       const { data, error } = await db.functions.invoke('create-order-checkout', {
         body: {
           cart_id: cartId,
-          delivery_method: deliveryMethod,
+          delivery_method: 'seller',
           buyer_contact: { name: buyerName.trim(), phone: buyerPhone.trim(), email: user.email ?? '' },
-          delivery_address: deliveryMethod === 'tradr' ? { address: deliveryAddress.trim() } : null,
+          delivery_address: null,
           buyer_note: buyerNote.trim(),
           idempotency_key: idempotencyKey,
         },
@@ -258,24 +243,24 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
       <section className="form-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-heading">
         <button type="button" className="modal-close modal-back-button" onClick={() => setOpen(false)} aria-label="Close cart">×</button>
         <div className="modal-brand-mark">t<span>.</span></div>
-        <span className="eyebrow">ONE SHOP PER CHECKOUT</span>
+        <span className="eyebrow">SHOPPING CART</span>
         <h2 id="cart-heading">Your cart.</h2>
         {lines.length ? <>
           <div className="cart-lines">{lines.map(line => <article className="cart-line" key={line.id}>
             <img src={line.listing?.image_urls?.[0] || '/favicon.ico'} alt=""/>
-            <div className="cart-line-copy"><b>{line.listing?.title ?? 'Unavailable listing'}</b><strong>{money(Number(line.listing?.price_ngn ?? 0))}</strong><div className="cart-quantity"><button type="button" onClick={() => void updateQuantity(line, line.quantity - 1)} aria-label="Decrease quantity">−</button><span>{line.quantity}</span><button type="button" disabled={line.listing?.stock_quantity !== null && line.listing?.stock_quantity !== undefined && line.quantity >= line.listing.stock_quantity} onClick={() => void updateQuantity(line, line.quantity + 1)} aria-label="Increase quantity">+</button><button type="button" className="cart-remove" onClick={() => void updateQuantity(line, 0)}>Remove</button></div></div>
+            <div className="cart-line-copy"><small className="cart-shop-label">{line.listing?.vendor?.shop_name ?? 'LCU shop'}</small><b>{line.listing?.title ?? 'Unavailable listing'}</b><strong>{money(Number(line.listing?.price_ngn ?? 0))}</strong><div className="cart-quantity"><button type="button" onClick={() => void updateQuantity(line, line.quantity - 1)} aria-label="Decrease quantity">−</button><span>{line.quantity}</span><button type="button" disabled={line.listing?.stock_quantity !== null && line.listing?.stock_quantity !== undefined && line.quantity >= line.listing.stock_quantity} onClick={() => void updateQuantity(line, line.quantity + 1)} aria-label="Increase quantity">+</button><button type="button" className="cart-remove" onClick={() => void updateQuantity(line, 0)}>Remove</button></div></div>
           </article>)}</div>
           <div className="cart-summary"><span>Items subtotal</span><b>{money(subtotal)}</b></div>
+          {shopCount > 1 && <p className="cart-multishop-note">Your cart has items from {shopCount} shops. Each shop will receive its own order after your single payment.</p>}
           <div className="cart-contact-fields">
             <label>Your name<input value={buyerName} onChange={event => setBuyerName(event.target.value)} placeholder="Full name" autoComplete="name"/></label>
             <label>Phone number<input value={buyerPhone} onChange={event => setBuyerPhone(event.target.value)} placeholder="08012345678" inputMode="tel" autoComplete="tel"/></label>
-            {deliveryMethod === 'tradr' && <label>Delivery address<input value={deliveryAddress} onChange={event => setDeliveryAddress(event.target.value)} placeholder="Hall, block, room or campus landmark"/></label>}
             <label>Note for the shop (optional)<textarea value={buyerNote} onChange={event => setBuyerNote(event.target.value)} rows={2} maxLength={1000} placeholder="Anything the seller should know?"/></label>
           </div>
           <div className="cart-total"><span>Total to pay</span><b>{money(total)}</b></div>
           <button type="button" className="modal-primary cart-checkout-button" disabled={busy || !lines.length} onClick={() => void checkout()}>{busy ? 'Preparing secure checkout…' : 'Continue to secure payment'} <span>↗</span></button>
-          <small className="form-footnote">Your order is created only from live shop prices. Payment is confirmed by Paystack before the shop receives the order. A 5% marketplace commission is taken from the shop’s sale proceeds, not added to your product prices.</small>
-        </> : <div className="cart-empty"><b>Your cart is taking a little break.</b><p>Add something from a shop to get started. Checkout is one shop at a time.</p><button type="button" className="modal-primary" onClick={() => setOpen(false)}>Keep exploring <span>↗</span></button></div>}
+          <small className="form-footnote">Your order is created using current shop prices. Payment is confirmed securely by Paystack before the shop receives your order.</small>
+        </> : <div className="cart-empty"><b>Your cart is taking a little break.</b><p>Add something from a shop to get started.</p><button type="button" className="modal-primary" onClick={() => setOpen(false)}>Keep exploring <span>↗</span></button></div>}
       </section>
     </div>}
   </>
