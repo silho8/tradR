@@ -205,3 +205,13 @@ Then deploy the four dependent Edge Functions with their correct JWT settings, v
 - Vercel project `tradr` is linked to `silho8/tradR`; the checked-in local branch is `main`. The latest prior production deployment was built from `master`, so use a preview deployment from `main` for validation before promoting it to production.
 - Frontend build and TypeScript checks passed. The PWA service worker and Workbox assets were generated. `git diff --check` passed.
 - No live payment was initiated. Local outbound DNS resolution to the Supabase project was intermittent during endpoint smoke checks; complete endpoint checks from a working network before considering acceptance testing complete.
+
+
+## Production frontend rollout complete — 2026-11-26
+
+- Vercel production deployment `dpl_Bus6jLfLdpu7KmsdqctScSBL5T8U` is READY from GitHub `main` commit `7c339d614c4a28dcaf4669d0dcdc22328a35c9f8`.
+- `https://www.tradrr.store` returns HTTP 200 with the tradR. app; `https://tradrr.store` redirects to `www`. PWA manifest and service worker also return HTTP 200.
+- A read-only live browser check confirmed the production header, categories, listing grid, search, sort/filter controls, cart and footer render with real marketplace listings; no fatal UI errors were observed.
+- Supabase Edge Function smoke checks: webhook GET returns 405; webhook POST without a signature returns 401 `Invalid webhook signature`; checkout, payment-status and delivery-notification endpoints reject unauthenticated requests with 401. No charge or order was created.
+- A Paystack live charge and a complete authenticated buyer/seller/agent transaction were deliberately not simulated. Those require an authorized test-mode transaction and actual authenticated user/agent accounts.
+- Main is now the deployed production source for this release. Keep future production changes on `main`; preserve the verified backups and do not run destructive database resets.

@@ -14,8 +14,8 @@
 - The four buyer-order/delivery Edge Functions are deployed: `create-order-checkout`, `order-payment-status`, `order-paystack-webhook`, and `notify-delivery-agents`.
 - `order-paystack-webhook` has gateway JWT verification disabled because it validates Paystack's HMAC signature itself. The other three functions require JWT verification and also validate the user or shop owner in their handler.
 - The private `delivery-agent-verification` storage bucket and its owner/admin access policies are deployed.
-- The production frontend deployment is the remaining release stage. Do not assume the new buyer checkout UI is live until the Vercel production deployment is confirmed.
-- No live customer charge has been initiated as part of deployment validation.
+- The frontend is deployed to Vercel production from GitHub `main` (commit `7c339d6`). Both `www.tradrr.store` and the apex-to-www redirect are serving the new app.
+- No live customer charge has been initiated as part of deployment validation. The webhook rejected a POST without a signature with HTTP 401 `Invalid webhook signature`; the authenticated checkout/status/notification endpoints rejected unauthenticated requests with HTTP 401.
 
 The buyer-order webhook URL is:
 
