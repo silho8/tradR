@@ -42,7 +42,7 @@ function nextAction(order: SellerOrder) {
   return null
 }
 
-export default function SellerOrders({ db, vendorId, onToast }: { db: SupabaseClient; vendorId: string; onToast: (message: string) => void }) {
+export default function SellerOrders({ db, vendorId, onToast, onOpenChat }: { db: SupabaseClient; vendorId: string; onToast: (message: string) => void; onOpenChat: (orderId: string) => void }) {
   const [orders, setOrders] = useState<SellerOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState('')
@@ -103,6 +103,11 @@ export default function SellerOrders({ db, vendorId, onToast }: { db: SupabaseCl
         p_public_message: null,
       })
       if (error) throw error
+      const { data: statusEvent } = await db.from('order_events').select('id').eq('order_id', order.id).eq('actor_user_id', (await db.auth.getUser()).data.user?.id ?? '').eq('event_type', 'seller_order_status_updated').order('created_at', { ascending: false }).limit(1).maybeSingle()
+      if (statusEvent?.id) {
+        const { error: pushError } = await db.functions.invoke('notify-order-chat', { body: { event_id: statusEvent.id } })
+        if (pushError) console.warn('Order update saved, but buyer push alert could not be sent:', pushError.message)
+      }
       if (action.status === 'ready_for_handover' && order.delivery_method === 'tradr') {
         const { data: pushResult, error: pushError } = await db.functions.invoke('notify-delivery-agents', { body: { order_id: order.id } })
         if (pushError || pushResult?.error) {
@@ -137,6 +142,7 @@ export default function SellerOrders({ db, vendorId, onToast }: { db: SupabaseCl
       const buyer = order.buyer_contact_snapshot ?? {}
       return <article className="seller-order-card" key={order.id}>
         <div className="seller-order-top"><div><span className="seller-order-number">{order.public_order_number}</span><small>{new Date(order.created_at).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}</small></div><span className={'seller-order-status status-' + order.order_status}>{statusLabels[order.order_status] ?? order.order_status}</span></div>
+        <button type="button" className="seller-order-chat-button" onClick={() => onOpenChat(order.id)}>Message buyer <span>↗</span></button>
         <div className="seller-order-items">{order.order_items.map(item => <div className="seller-order-item" key={item.id}>{item.image_snapshot ? <img src={item.image_snapshot} alt=""/> : <span className="seller-order-item-placeholder">t.</span>}<span><b>{item.title_snapshot}</b><small>Qty {item.quantity} · {money(Number(item.unit_price_kobo))} each</small></span><strong>{money(Number(item.line_subtotal_kobo))}</strong></div>)}</div>
         <div className="seller-order-buyer"><b>{buyer.name || 'Buyer'}</b>{buyer.phone && <a href={`tel:${buyer.phone}`}>{buyer.phone}</a>}{buyer.email && <small>{buyer.email}</small>}</div>
         {order.delivery_method === 'tradr' ? <div className="seller-order-delivery"><b>tradR agent delivery · ₦1,000 paid by buyer</b><span>{order.delivery_address_snapshot?.address || 'Delivery address saved with order'}</span>{order.order_status === 'ready_for_handover' && <small>Open to approved delivery agents. The first one to accept gets the job.</small>}</div> : <div className="seller-order-delivery"><b>Seller-arranged handover</b><span>No tradR delivery fee was charged.</span></div>}

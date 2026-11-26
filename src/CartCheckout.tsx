@@ -21,11 +21,12 @@ type Props = {
   user: CartUser | null
   onRequireSignIn: () => void
   onToast: (message: string) => void
+  onOrderPaid: (orderId: string) => void
 }
 
 const money = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(amount)
 
-export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Props) {
+export default function CartCheckout({ db, user, onRequireSignIn, onToast, onOrderPaid }: Props) {
   const [cartId, setCartId] = useState('')
   const [lines, setLines] = useState<CartLine[]>([])
   const [open, setOpen] = useState(false)
@@ -156,11 +157,25 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
     if (!user || !reference || params.get('order_payment') !== '1' || paymentChecking) return
     setPaymentChecking(true)
     void db.functions.invoke('order-payment-status', { body: { provider_reference: reference } })
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (error) throw error
-        const result = data as { payment?: { status?: string }; order?: { public_order_number?: string; order_status?: string } }
+        const result = data as { payment?: { status?: string }; order?: { id?: string; public_order_number?: string; order_status?: string } }
         if (result.payment?.status === 'succeeded') {
-          onToast('Payment confirmed. Your separate shop orders are now available in Orders.')
+          let orderId = result.order?.id
+          if (!orderId && result.order?.public_order_number) {
+            const { data: paidOrder } = await db.from('orders').select('id').eq('buyer_id', user.id).eq('public_order_number', result.order.public_order_number).maybeSingle()
+            orderId = paidOrder?.id
+          }
+          if (orderId) {
+            const { data: paidEvent } = await db.from('order_events').select('id').eq('order_id', orderId).eq('event_type', 'payment_succeeded').order('created_at', { ascending: false }).limit(1).maybeSingle()
+            if (paidEvent?.id) {
+              const { error: pushError } = await db.functions.invoke('notify-order-chat', { body: { event_id: paidEvent.id } })
+              if (pushError) console.warn('Order is paid, but the seller push alert could not be sent:', pushError.message)
+            }
+            onOrderPaid(orderId)
+          } else {
+            onToast('Payment confirmed. Your order is available in Orders and Inbox.')
+          }
         } else {
           onToast(`Payment status: ${result.payment?.status ?? 'pending'}. Check your order again shortly. Please do not pay twice.`)
         }
@@ -174,7 +189,7 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
         setPaymentChecking(false)
         void loadCart()
       })
-  }, [db, loadCart, onToast, paymentChecking, user?.id])
+  }, [db, loadCart, onOrderPaid, onToast, paymentChecking, user?.id])
 
   async function updateQuantity(line: CartLine, quantity: number) {
     if (line.listing?.stock_quantity !== null && line.listing?.stock_quantity !== undefined && quantity > line.listing.stock_quantity) { onToast(`Only ${line.listing.stock_quantity} available for this product.`); return }
