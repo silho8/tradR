@@ -176,7 +176,7 @@
 /* App-like mobile shell: five thumb-friendly destinations and a clear primary action. */
 @media(max-width:600px){
   .app-shell{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
-  .mobile-bottom-nav{height:calc(64px + env(safe-area-inset-bottom));padding:6px 5px calc(6px + env(safe-area-inset-bottom));grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid #e1e6dd;box-shadow:0 -8px 28px #102a430c}
+  .mobile-bottom-nav{height:calc(64px + env(safe-area-inset-bottom));padding:6px 5px calc(6px + env(safe-area-inset-bottom));grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid #e1e6dd;box-shadow:0 -8px 28px #102a430c}
   .mobile-bottom-nav button{position:relative;min-width:0;gap:4px;padding:3px 0;color:#7c898c;font-size:9px;font-weight:600;white-space:nowrap}
   .mobile-bottom-nav button.active{color:var(--navy);font-weight:900}
   .mobile-bottom-nav button.active:not(.mobile-nav-sell)::before{content:"";position:absolute;top:-6px;width:22px;height:3px;border-radius:0 0 4px 4px;background:var(--lime)}
@@ -392,7 +392,7 @@
   .mobile-profile-button{display:flex;flex:0 0 auto;align-items:center;gap:7px;margin-left:auto;padding:5px 9px 5px 5px;border:1px solid #dfe6d9;border-radius:999px;background:#fff;color:var(--navy);font-size:10px;font-weight:800}
   .mobile-profile-button>span{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:#edf3df;color:#526d28;font-size:12px;font-weight:900}
   .mobile-profile-button small{font-size:10px;font-weight:800}
-  .mobile-bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr));padding-bottom:calc(6px + env(safe-area-inset-bottom));height:calc(64px + env(safe-area-inset-bottom))}
+  .mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:calc(6px + env(safe-area-inset-bottom));height:calc(64px + env(safe-area-inset-bottom))}
   .mobile-bottom-nav button:last-child{margin:1px 2px;padding:5px 1px;border:1px solid #dce6ca;border-radius:11px;background:#f1f6e6;color:#526d28;font-weight:900}
   .mobile-bottom-nav button:last-child.active{background:var(--navy);border-color:var(--navy);color:#fff}
   .mobile-bottom-nav button:last-child.active::before{display:none}
