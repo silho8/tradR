@@ -940,7 +940,7 @@ export default function App() {
       }
       const uploadedLogo = logoFile ? await uploadPublicImage(logoFile, 'shop-logo') : null
       uploadedLogoPath = uploadedLogo?.path ?? ''
-      const { error } = await db.from('vendors').insert({ profile_id: user.id, shop_name: shopName.trim(), bio: shopBio.trim(), whatsapp_number: '', logo_url: uploadedLogo?.url ?? null })
+      const { error } = await db.from('vendors').insert({ profile_id: user.id, shop_name: shopName.trim(), bio: shopBio.trim(), whatsapp_number: null, logo_url: uploadedLogo?.url ?? null })
       if (error) throw error
       setVendorOnboardingOpen(false)
       setLogoFile(null)

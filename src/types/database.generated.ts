@@ -619,14 +619,14 @@ isOneToOne: false
                   ]
                 },"vendors": {
                   Row: {
-                    "bio": string,"created_at": string,"id": string,"logo_url": string | null,"profile_id": string,"shop_name": string,"updated_at": string,"verification_status": string,"whatsapp_number": string
+                    "bio": string,"created_at": string,"id": string,"logo_url": string | null,"profile_id": string,"shop_name": string,"updated_at": string,"verification_status": string,"whatsapp_number": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "bio"?: string,"created_at"?: string,"id"?: string,"logo_url"?: string | null,"profile_id": string,"shop_name": string,"updated_at"?: string,"verification_status"?: string,"whatsapp_number": string
+                    "bio"?: string,"created_at"?: string,"id"?: string,"logo_url"?: string | null,"profile_id": string,"shop_name": string,"updated_at"?: string,"verification_status"?: string,"whatsapp_number"?: string | null
                   }
                   Update: {
-                    "bio"?: string,"created_at"?: string,"id"?: string,"logo_url"?: string | null,"profile_id"?: string,"shop_name"?: string,"updated_at"?: string,"verification_status"?: string,"whatsapp_number"?: string
+                    "bio"?: string,"created_at"?: string,"id"?: string,"logo_url"?: string | null,"profile_id"?: string,"shop_name"?: string,"updated_at"?: string,"verification_status"?: string,"whatsapp_number"?: string | null
                   }
                   Relationships: [
                     {
