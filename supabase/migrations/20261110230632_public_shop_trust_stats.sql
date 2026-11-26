@@ -1,5 +1,3 @@
--- Expose only an aggregate completed-handover count for approved public shops.
--- Transaction rows remain private to their buyer and seller participants.
 CREATE OR REPLACE FUNCTION public.get_public_shop_completed_sales(p_vendor_id uuid)
 RETURNS bigint
 LANGUAGE sql
@@ -14,6 +12,5 @@ AS $$
     AND v.verification_status = 'approved'
     AND t.status = 'completed';
 $$;
-
 REVOKE ALL ON FUNCTION public.get_public_shop_completed_sales(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_public_shop_completed_sales(uuid) TO anon, authenticated;

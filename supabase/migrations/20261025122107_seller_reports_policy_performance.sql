@@ -1,5 +1,3 @@
--- Keep reporter-owned access and admin review access in one SELECT policy.
--- Wrapping auth functions in scalar subqueries avoids per-row re-evaluation.
 drop policy if exists "admins can review seller reports" on public.seller_reports;
 drop policy if exists "reporters can view their own reports" on public.seller_reports;
 create policy "reporters and admins can view seller reports"

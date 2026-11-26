@@ -45,3 +45,4 @@ drop trigger if exists enforce_vendor_listing_limit on public.listings;
 create trigger enforce_vendor_listing_limit
 before insert or update of vendor_id on public.listings
 for each row execute function public.enforce_vendor_listing_limit();
+;

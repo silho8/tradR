@@ -1,0 +1,14 @@
+# Supabase CLI configuration. The CLI reads config.toml.
+project_id = "tradR"
+
+[functions.create-order-checkout]
+verify_jwt = true
+
+[functions.order-payment-status]
+verify_jwt = true
+
+[functions.order-paystack-webhook]
+verify_jwt = false
+
+[functions.notify-delivery-agents]
+verify_jwt = true

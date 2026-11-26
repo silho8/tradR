@@ -44,7 +44,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE OR REPLACE FUNCTION public.guard_seller_listing_update()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -109,7 +108,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 -- Existing drafts from shops that were awaiting approval become publishable as
 -- soon as the shop is approved, subject to the existing trial/subscription gate.
 CREATE OR REPLACE FUNCTION public.recheck_vendor_listings_after_approval()
@@ -130,12 +128,10 @@ $$;
 REVOKE ALL ON FUNCTION public.guard_seller_listing_insert() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.guard_seller_listing_update() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.recheck_vendor_listings_after_approval() FROM PUBLIC, anon, authenticated;
-
 -- This older guard reset moderation fields after the new publication trigger ran.
 -- The replacement insert/update guards above now protect those fields and set them
 -- only after verifying shop approval and subscription access.
 DROP TRIGGER IF EXISTS listings_protect_system_fields ON public.listings;
-
 -- Publish legacy pending listings belonging to shops that are already approved.
 -- The existing publication trigger still enforces the trial/subscription expiry.
 UPDATE public.listings l

@@ -6,3 +6,7 @@ dist/
 *.local
 .DS_Store
 .vite/
+
+# Local Supabase CLI state (machine-specific, never commit)
+supabase/.temp/
+supabase/.branches/

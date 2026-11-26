@@ -74,8 +74,8 @@ BEGIN
     END IF;
   END IF;
 
-  IF (OLD.buyer_confirmed AND NOT NEW.buyer_confirmed)
-     OR (OLD.seller_confirmed AND NOT NEW.seller_confirmed) THEN
+  IF OLD.buyer_confirmed AND NOT NEW.buyer_confirmed
+     OR OLD.seller_confirmed AND NOT NEW.seller_confirmed THEN
     RAISE EXCEPTION 'Handover confirmations cannot be withdrawn.';
   END IF;
 

@@ -1,35 +1,57 @@
-# Paystack live setup for tradR
+# Paystack buyer-order payments for tradR.
 
-## Production values
+## Current payment rules
 
-- **Application/callback base URL:** `https://tradrr.store`
-- **Webhook URL:** `https://mmwgmgzpxzkhbrabloiq.supabase.co/functions/v1/paystack-webhook`
-- **Checkout amount:** ₦500 (50,000 kobo), NGN
-- **Subscription period:** 30 days
-- **Vercel production flag:** `VITE_TRADR_PAYMENTS_ENABLED=true`
+- Seller access and product listings are free. Do not charge sellers the retired ₦500 listing or shop subscription fee.
+- Buyers pay through Paystack when placing an order.
+- The marketplace commission is 5% of the item subtotal.
+- tradR-agent delivery adds a flat ₦1,000 fee paid by the buyer. Seller-arranged delivery has no tradR delivery fee.
+- Paystack's verified processor fee is recorded from the transaction verification response in the marketplace ledger.
 
-## Supabase Edge Function secrets
+## Production rollout status (2026-11-26)
 
-Set these in the Supabase Dashboard under Edge Function secrets. Never paste them into chat, commit them, or expose them in Vite variables.
+- All eight additive checkout, order, inventory, delivery, financial-control and new-shop migrations are applied to the production Supabase project.
+- The four buyer-order/delivery Edge Functions are deployed: `create-order-checkout`, `order-payment-status`, `order-paystack-webhook`, and `notify-delivery-agents`.
+- `order-paystack-webhook` has gateway JWT verification disabled because it validates Paystack's HMAC signature itself. The other three functions require JWT verification and also validate the user or shop owner in their handler.
+- The private `delivery-agent-verification` storage bucket and its owner/admin access policies are deployed.
+- The production frontend deployment is the remaining release stage. Do not assume the new buyer checkout UI is live until the Vercel production deployment is confirmed.
+- No live customer charge has been initiated as part of deployment validation.
 
-- `PAYSTACK_SECRET_KEY`: the live secret key from Paystack, beginning with `sk_live_`
-- `TRADR_APP_URL`: `https://tradrr.store`
-- Supabase's existing `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are used server-side by the Edge Functions.
+The buyer-order webhook URL is:
 
-## Paystack dashboard
+`https://mmwgmgzpxzkhbrabloiq.supabase.co/functions/v1/order-paystack-webhook`
 
-Register the webhook URL above in **Live Mode**. The callback URL is sent in each transaction initialization request, so it does not need to be registered as a webhook. The app returns to:
+The buyer checkout callback is:
 
-`https://tradrr.store/?payment=return&tx_ref=<generated-reference>`
+`https://tradrr.store/?order_payment=1`
 
-The backend does not trust the redirect. It validates the signed webhook and independently calls Paystack's transaction verification API before activating a listing.
+Do not configure the new buyer-order flow to use the legacy `paystack-webhook` endpoint. That endpoint belongs to the retired seller-subscription/payment flow and remains deployed for compatibility while legacy code paths are being retired.
 
-## Safe verification checklist
+## Required server-side secrets
 
-1. Confirm the key is a live secret in the Paystack dashboard.
-2. Confirm the webhook endpoint rejects unsigned requests with HTTP 401.
-3. Verify the live key against a no-charge authenticated Paystack endpoint such as the balance endpoint. Do not expose the returned balance or secret key in logs.
-4. Confirm `tradrr.store` and `www.tradrr.store` resolve to the production Vercel deployment.
-5. Do not run a real charge as a configuration test. Use a deliberate, low-risk live transaction only when ready to accept customer payments and reconcile it.
+Set these as Supabase Edge Function secrets only. Never commit them or put secret keys in Vite variables:
 
-The frontend flag only controls the UI. The backend's live-key prefix guard is the final safety check. A `sk_live_` prefix alone does not prove that Paystack accepts the key, so complete the no-charge API verification if provider authentication has not yet been confirmed.
+- `PAYSTACK_SECRET_KEY`: the approved Paystack Live secret key for production. Use a test key only in an isolated test project.
+- `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`: required by delivery-agent web push.
+- Supabase provides `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to Edge Functions.
+
+The frontend must never receive the Paystack secret key. It receives only the authorization URL returned by the checkout function.
+
+## Safe acceptance checks
+
+1. Verify the checkout and order-status endpoints reject requests without a valid user JWT.
+2. Verify the Paystack webhook rejects missing/invalid signatures and accepts only a correctly signed event after independent Paystack transaction verification.
+3. Verify repeated checkout requests with the same idempotency key reuse the same order and payment reference.
+4. Verify failed/abandoned payments release reserved stock exactly once.
+5. Verify successful payments create seller and marketplace ledger entries exactly once, including the actual Paystack processor fee when supplied.
+6. Verify the first approved delivery agent to accept a ready job claims it, and stale job notifications cannot reopen an assigned delivery.
+7. Verify delivery identity uploads remain private and only owners/admins can access them.
+8. Verify incidents block payouts, refunds require a completed Paystack refund first, and seller/agent payouts require admin recording.
+9. Do not create a real customer charge as a configuration test. Use Paystack Test Mode in a separate test environment for full payment-cycle acceptance.
+
+## Production safety
+
+- Existing sellers, shops, listings, IDs, approval states, legacy transactions, push subscriptions, and listing-image objects were preserved.
+- A full PostgreSQL custom-format dump and a separate 95-object listing-image archive were captured on 2026-11-26. The database dump was restored into a disposable local database and application row counts were checked.
+- Keep the private database connection string in the gitignored `.env.backup.local`; never commit it or paste it into chat.
+- Do not run `supabase db reset` or use destructive database rebuilds against production.

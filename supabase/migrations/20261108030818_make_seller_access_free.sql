@@ -108,8 +108,6 @@ BEGIN
 END;
 $$;
 
--- Make every existing approved seller's current listings visible again,
--- including listings that had expired under the previous trial/subscription rule.
 UPDATE public.listings l
 SET status = 'published',
     visible_until = '9999-12-31 23:59:59+00'::timestamptz,

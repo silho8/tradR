@@ -1,3 +1,4 @@
+
 -- Phase 3: verified, two-sided transaction confirmations and seller reviews.
 -- Transactions can only be opened by a signed-in buyer for a live listing.
 create index if not exists transactions_listing_id_idx on public.transactions(listing_id);
@@ -180,7 +181,8 @@ create trigger seller_reviews_guard_seller_review
 before insert on public.seller_reviews
 for each row execute function public.guard_seller_review();
 
--- No UPDATE or DELETE policy is granted for reviews, so published reviews are immutable.
-
+-- Reviews are immutable after submission. The unique transaction constraint
+-- already guarantees no second review can be created for the same transaction.
 drop policy if exists "review authors cannot edit reviews" on public.seller_reviews;
 drop policy if exists "review authors cannot delete reviews" on public.seller_reviews;
+;

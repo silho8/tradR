@@ -1,0 +1,1 @@
+drop trigger if exists push_subscription_schedule_daily on public.push_subscriptions; create trigger push_subscription_schedule_daily after insert or update on public.push_subscriptions for each row execute function public.ensure_daily_push_schedule();
