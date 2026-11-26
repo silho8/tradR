@@ -267,7 +267,7 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast }: Pro
           </article>)}</div>
           <div className="cart-summary"><span>Items subtotal</span><b>{money(subtotal)}</b></div>
           <div className="cart-delivery-choice"><b>How should this order reach you?</b>
-            <label><input type="radio" name="delivery-method" checked={deliveryMethod === 'seller'} onChange={() => setDeliveryMethod('seller')}/><span><strong>Arrange with the shop</strong><small>Coordinate collection or delivery directly with the seller. No tradR delivery charge.</small></span></label>
+            <label><input type="radio" name="delivery-method" checked={deliveryMethod === 'seller'} onChange={() => setDeliveryMethod('seller')}/><span><strong>Seller fulfilment</strong><small>The shop will confirm collection or delivery details in your tradR order. No tradR delivery charge.</small></span></label>
             <label><input type="radio" name="delivery-method" checked={deliveryMethod === 'tradr'} onChange={() => setDeliveryMethod('tradr')}/><span><strong>tradR agent delivery <em>₦1,000</em></strong><small>Our delivery agent brings your order to the address you provide.</small></span></label>
           </div>
           <div className="cart-contact-fields">

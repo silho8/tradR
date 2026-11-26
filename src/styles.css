@@ -751,3 +751,7 @@
 .theme-dark .push-onboarding-points{background:#1c2a32;border-color:#3b4b53}
 .theme-dark .push-onboarding-points span:before{background:#34472b;color:#d9f59c}
 .theme-dark .delivery-open-job{background:#1b2a31;border-color:#42533b}
+
+/* Native marketplace purchase actions */
+.card-cart-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:34px;padding:8px 11px;border:0;border-radius:4px;background:var(--lime);color:var(--navy);font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer}.card-cart-button:disabled{background:#e4e9df;color:#879188;cursor:not-allowed}.listing-view-button{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);background:#fff;color:var(--navy)}.public-shop-actions{display:flex;gap:10px;max-width:300px}.public-shop-actions>.modal-primary{margin:0}
+@media(max-width:600px){.card-cart-button{min-height:32px;padding:7px 9px;font-size:8px}.listing-bottom{gap:7px}}
