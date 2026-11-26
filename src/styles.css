@@ -880,3 +880,13 @@
   .order-chat-header { padding-top:calc(18px + env(safe-area-inset-top)); }
   .order-chat-compose { padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
 }
+.notification-item .notification-open-chat {
+  border:1px solid var(--line,rgba(20,20,20,.14));
+  border-radius:999px;
+  padding:7px 10px;
+  color:var(--ink,#171717);
+  background:transparent;
+  font-size:10px;
+  font-weight:750;
+  white-space:nowrap;
+}
