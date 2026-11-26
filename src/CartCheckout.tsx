@@ -152,6 +152,15 @@ export default function CartCheckout({ db, user, onRequireSignIn, onToast, onOrd
   }, [addToCart])
 
   useEffect(() => {
+    const handleOpen = () => {
+      if (!user) { onRequireSignIn(); return }
+      void loadCart().then(() => setOpen(true)).catch(error => onToast(error instanceof Error ? error.message : 'Could not open your cart.'))
+    }
+    window.addEventListener('tradr:open-cart', handleOpen)
+    return () => window.removeEventListener('tradr:open-cart', handleOpen)
+  }, [loadCart, onRequireSignIn, onToast, user])
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const reference = params.get('reference')
     if (!user || !reference || params.get('order_payment') !== '1' || paymentChecking) return
