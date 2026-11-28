@@ -19,6 +19,7 @@ type BuyerOrder = {
   order_items: OrderItem[]
   order_events: OrderEvent[]
   delivery: { id: string; status: string; dispatch_at: string | null; delivered_at: string | null; proof_reference: string | null } | null
+  buyer_hidden_at: string | null
 }
 
 const money = (amount: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(amount / 100)
@@ -61,8 +62,9 @@ export default function BuyerOrders({ db, user, open, onOpenChange, onToast, onO
     setLoading(true)
     try {
       const { data, error } = await db.from('orders')
-        .select('id,public_order_number,order_status,payment_status,delivery_method,items_subtotal_kobo,delivery_fee_kobo,buyer_total_kobo,created_at,buyer_contact_snapshot,delivery_address_snapshot,buyer_note,order_items(id,title_snapshot,image_snapshot,quantity,unit_price_kobo,line_subtotal_kobo),order_events(id,event_type,from_status,to_status,public_message,created_at),delivery:deliveries(status,dispatch_at,delivered_at,proof_reference)')
+        .select('id,public_order_number,order_status,payment_status,delivery_method,items_subtotal_kobo,delivery_fee_kobo,buyer_total_kobo,created_at,buyer_contact_snapshot,delivery_address_snapshot,buyer_note,order_items(id,title_snapshot,image_snapshot,quantity,unit_price_kobo,line_subtotal_kobo),order_events(id,event_type,from_status,to_status,public_message,created_at),delivery:deliveries(status,dispatch_at,delivered_at,proof_reference),buyer_hidden_at')
         .eq('buyer_id', user.id)
+        .is('buyer_hidden_at', null)
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
@@ -85,6 +87,23 @@ export default function BuyerOrders({ db, user, open, onOpenChange, onToast, onO
       onToast('Share this one-time code with your delivery agent only when they are with you.')
     } catch (error) {
       onToast(error instanceof Error ? error.message : 'Could not generate a delivery code.')
+    } finally { setBusyId('') }
+  }
+
+  async function removeFromHistory(order: BuyerOrder) {
+    if (!user || busyId) return
+    const canHide = order.order_status !== 'completed' && ['failed', 'abandoned', 'refunded'].includes(order.payment_status)
+    if (!canHide || order.order_status === 'completed') return
+    if (!window.confirm(`Remove order ${order.public_order_number} from your history? This will only hide it from your account. tradR will retain the transaction record for support and auditing.`)) return
+    setBusyId(order.id)
+    try {
+      const { error } = await db.from('orders').update({ buyer_hidden_at: new Date().toISOString() })
+        .eq('id', order.id).eq('buyer_id', user.id).is('buyer_hidden_at', null)
+      if (error) throw error
+      setOrders(current => current.filter(item => item.id !== order.id))
+      onToast('Order removed from your history. The transaction record is retained securely.')
+    } catch (error) {
+      onToast(error instanceof Error ? error.message : 'Could not remove this order from your history.')
     } finally { setBusyId('') }
   }
 
@@ -135,6 +154,7 @@ export default function BuyerOrders({ db, user, open, onOpenChange, onToast, onO
             <div className="buyer-order-timeline"><b>Order updates</b>{events.length ? events.slice(-6).map(event => <div className="buyer-order-event" key={event.id}><i/><span>{eventLabel(event)}<small>{new Date(event.created_at).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}</small></span></div>) : <small>No updates yet.</small>}</div>
             {order.order_status === 'delivered' && order.payment_status === 'succeeded' && <button type="button" className="buyer-order-confirm" disabled={busyId === order.id} onClick={() => void confirmReceived(order)}>{busyId === order.id ? 'Confirming…' : 'I’ve received my order'} <span>↗</span></button>}
             {order.order_status === 'completed' && <div className="buyer-order-complete">✓ You confirmed receipt of this order.</div>}
+            {order.order_status !== 'completed' && ['failed', 'abandoned', 'refunded'].includes(order.payment_status) && <button type="button" className="buyer-order-remove" disabled={busyId === order.id} onClick={() => void removeFromHistory(order)}>{busyId === order.id ? 'Removing…' : 'Remove from my history'}</button>}
             {order.payment_status === 'failed' && <small className="buyer-order-warning">This payment did not go through. Reserved stock has been returned to the shop. You can start a new checkout from the product listing.</small>}
           </article>
         })}</div> : <div className="buyer-orders-empty"><b>{filter === 'completed' ? 'No past orders yet.' : 'No orders here yet.'}</b><p>When you check out and complete payment, your order will appear here with live progress updates.</p><button type="button" className="modal-primary" onClick={() => onOpenChange(false)}>Explore the marketplace <span>↗</span></button></div>}
