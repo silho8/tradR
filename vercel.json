@@ -1,4 +1,10 @@
 {
+  "redirects": [
+    { "source": "/errand", "destination": "https://errand.tradrr.store/", "permanent": true },
+    { "source": "/errand/:path*", "destination": "https://errand.tradrr.store/:path*", "permanent": true },
+    { "source": "/admin", "destination": "https://admin.tradrr.store/", "permanent": true },
+    { "source": "/admin/:path*", "destination": "https://admin.tradrr.store/:path*", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

@@ -44,7 +44,8 @@ export default function PWAUpdatePrompt() {
 
   if (!updateAvailable) return null
 
-  const appLabel = window.location.pathname.replace(/\/+$/, '') === '/errand' ? 'Errand' : window.location.pathname.replace(/\/+$/, '') === '/admin' ? 'tradR Admin' : 'tradR.'
+  const host = window.location.hostname.toLowerCase()
+  const appLabel = host === 'errand.tradrr.store' || window.location.pathname.replace(/\/+$/, '') === '/errand' ? 'Errand' : host === 'admin.tradrr.store' || window.location.pathname.replace(/\/+$/, '') === '/admin' ? 'tradR Admin' : 'tradR.'
 
   return (
     <aside className="pwa-update-banner" role="status" aria-live="polite">
