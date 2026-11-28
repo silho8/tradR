@@ -9,10 +9,10 @@ let deferredInstallPrompt: InstallPromptEvent | null = typeof window !== 'undefi
   ? ((window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? null)
   : null
 
-// Remember per app (marketplace / admin / errand) so the guide doesn't nag on every visit.
-const DISMISS_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000
+// Suppress the guide only after installation. Closing it hides it for this page visit,
+// but it appears again the next time an uninstalled visitor opens the marketplace.
 const INSTALLED_SUPPRESS_MS = 90 * 24 * 60 * 60 * 1000
-type GuideState = { dismissedAt?: number; installedAt?: number }
+type GuideState = { installedAt?: number }
 const guideStateKey = (appName: string) => `tradr:install-guide:${appName}`
 function readGuideState(appName: string): GuideState {
   try { return JSON.parse(window.localStorage.getItem(guideStateKey(appName)) || '{}') as GuideState } catch { return {} }
@@ -22,11 +22,7 @@ function writeGuideState(appName: string, patch: GuideState) {
 }
 function guideSuppressed(appName: string) {
   const state = readGuideState(appName)
-  const now = Date.now()
-  return Boolean(
-    (state.installedAt && now - state.installedAt < INSTALLED_SUPPRESS_MS) ||
-    (state.dismissedAt && now - state.dismissedAt < DISMISS_COOLDOWN_MS)
-  )
+  return Boolean(state.installedAt && Date.now() - state.installedAt < INSTALLED_SUPPRESS_MS)
 }
 
 type BrowserGuide = {
@@ -221,8 +217,7 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
   }, [productName, appName])
 
   function closeGuide() {
-    // Remember the dismissal so the guide stays quiet for a while (see DISMISS_COOLDOWN_MS).
-    writeGuideState(appName, { dismissedAt: Date.now() })
+    // Dismiss only for this page visit; show it again on the next visit until installed.
     setOpen(false)
   }
 

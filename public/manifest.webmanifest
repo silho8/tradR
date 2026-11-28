@@ -33,12 +33,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/pwa-screenshots/tradr-mobile.png",
+      "sizes": "720x1572",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Browse the tradR. campus marketplace on mobile"
     },
     {
-      "src": "/tradr-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/pwa-screenshots/tradr-desktop.png",
+      "sizes": "1280x900",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Explore tradR. on desktop"
     }
   ]
 }

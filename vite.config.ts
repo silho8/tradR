@@ -29,6 +29,9 @@ export default defineConfig({
       manifest: false,
       // Route-specific manifests are served from public/ and selected before the page loads.
       workbox: {
+        // Claim open tabs as soon as the worker activates so first-visit PWA
+        // behaviour and installability checks see the active service worker.
+        clientsClaim: true,
         importScripts: ['/push-sw.js'],
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
