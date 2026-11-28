@@ -1,10 +1,10 @@
 {
-  "id": "/admin",
+  "id": "/",
   "name": "tradR. Admin",
   "short_name": "tradR Admin",
   "description": "Private marketplace management and moderation for tradR.",
-  "start_url": "/admin",
-  "scope": "/admin",
+  "start_url": "/?pwa=admin",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#102a43",
