@@ -2,6 +2,16 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 type Agent = { id: string; status: 'pending' | 'approved' | 'suspended'; display_name: string; phone: string }
+
+function normalizeNigerianPhone(value: string): string | null {
+  const compact = value.trim().replace(/[\s()-]/g, '')
+  let national = ''
+  if (/^0[789]\d{9}$/.test(compact)) national = compact.slice(1)
+  else if (/^\+234[789]\d{9}$/.test(compact)) national = compact.slice(4)
+  else if (/^234[789]\d{9}$/.test(compact)) national = compact.slice(3)
+  else return null
+  return '+234' + national
+}
 type DeliveryTask = {
   delivery_id: string
   order_id: string
@@ -83,6 +93,8 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
   async function apply(event: FormEvent) {
     event.preventDefault()
     if (busy) return
+    const normalizedPhone = normalizeNigerianPhone(phone)
+    if (!normalizedPhone) { onToast('Enter a valid Nigerian mobile number, e.g. 09012345678 or +2349012345678.'); return }
     if (!governmentId || !selfie) { onToast('Upload your Lead City University ID card or a student-portal screenshot, plus a clear selfie.'); return }
     if (!vapidPublicKey || !('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) { onToast('Push notifications are required for Errand agents, but this browser does not support the required setup.'); return }
     if (Notification.permission !== 'granted') {
@@ -112,7 +124,7 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
       const { error: selfieError } = await db.storage.from('delivery-agent-verification').upload(selfiePath, selfie, { contentType: selfie.type, upsert: false })
       if (selfieError) throw selfieError
       const { error } = await db.rpc('apply_as_delivery_agent', {
-        p_display_name: name, p_phone: phone,
+        p_display_name: name, p_phone: normalizedPhone,
         p_government_id_path: idPath, p_selfie_path: selfiePath,
       })
       if (error) throw error
@@ -221,7 +233,7 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
       </> : <form onSubmit={apply} className="delivery-agent-application">
         <div className="dashboard-empty"><b>Become a tradR delivery agent.</b><span>Submit your name, active phone number, Lead City University ID card or a screenshot of your student portal, and a clear selfie. Your documents are stored privately and reviewed by the tradR. team before you can accept jobs.</span></div>
         <label>Full name<input value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={100} required placeholder="Your name as shown on your LCU profile"/></label>
-        <label>Phone number<input type="tel" value={phone} onChange={event => setPhone(event.target.value)} minLength={10} maxLength={30} required placeholder="+234…"/></label>
+        <label>Phone number (Nigeria only)<input type="tel" value={phone} onChange={event => setPhone(event.target.value)} onBlur={() => { const normalized = normalizeNigerianPhone(phone); if (normalized) setPhone(normalized) }} inputMode="tel" autoComplete="tel" maxLength={18} required placeholder="09012345678 or +2349012345678"/><small>Use an 11-digit Nigerian mobile number or its +234 international format. We’ll save it in +234 format.</small></label>
         <label>Lead City University student proof <small>Upload your LCU ID card or a screenshot of your student portal · JPG, PNG or PDF · max 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" required onChange={event => setGovernmentId(event.target.files?.[0] || null)}/></label>
         <label>Clear selfie <small>JPG or PNG · max 5 MB</small><input type="file" accept="image/jpeg,image/png" required onChange={event => setSelfie(event.target.files?.[0] || null)}/></label>
         <button className="modal-primary" disabled={busy === 'apply'}>{busy === 'apply' ? 'Submitting…' : 'Submit application'} <span>↗</span></button>
