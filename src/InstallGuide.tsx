@@ -9,16 +9,6 @@ let deferredInstallPrompt: InstallPromptEvent | null = typeof window !== 'undefi
   ? ((window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? null)
   : null
 
-// Capture Chrome's install event as early as the module loads. React effects can
-// otherwise subscribe after the browser has already dispatched it.
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeinstallprompt', event => {
-    event.preventDefault()
-    deferredInstallPrompt = event as InstallPromptEvent
-    window.dispatchEvent(new Event('tradr-install-ready'))
-  })
-}
-
 type BrowserGuide = {
   name: string
   menu: string
@@ -159,6 +149,8 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
     if (alreadyRunningAsThisApp || new URLSearchParams(window.location.search).has('payment')) return
     setIsMobileDevice(isMobile)
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
+    // The install guide is a mobile onboarding prompt, not a desktop modal.
+    if (!isMobile) return
 
     const onInstallReady = () => {
       const prompt = (window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? deferredInstallPrompt

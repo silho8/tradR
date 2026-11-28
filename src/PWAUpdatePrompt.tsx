@@ -1,51 +1,37 @@
 import { useEffect, useState } from 'react'
-import { registerSW } from 'virtual:pwa-register'
+import { applyPwaUpdate } from './pwaRegistration'
 
 export default function PWAUpdatePrompt() {
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [updateSW, setUpdateSW] = useState<((reloadPage?: boolean) => Promise<void>) | null>(null)
 
   useEffect(() => {
-    let interval: number | undefined
-    let focusHandler: (() => void) | undefined
-    let visibilityHandler: (() => void) | undefined
-    let pageShowHandler: (() => void) | undefined
-    const applyUpdate = registerSW({
-      immediate: true,
-      onNeedRefresh() { setUpdateAvailable(true) },
-      onRegisteredSW(_swUrl, registration) {
-        if (!registration) return
-        // Check periodically and whenever the app returns to the foreground.
-        interval = window.setInterval(() => { void registration.update() }, 60 * 60 * 1000)
-        focusHandler = () => { void registration.update() }
-        window.addEventListener('focus', focusHandler)
-        visibilityHandler = () => { if (document.visibilityState === 'visible') void registration.update() }
-        pageShowHandler = () => { void registration.update() }
-        document.addEventListener('visibilitychange', visibilityHandler)
-        window.addEventListener('pageshow', pageShowHandler)
-      }
-    })
-    setUpdateSW(() => applyUpdate)
-    return () => {
-      if (interval !== undefined) window.clearInterval(interval)
-      if (focusHandler) window.removeEventListener('focus', focusHandler)
-      if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler)
-      if (pageShowHandler) window.removeEventListener('pageshow', pageShowHandler)
-    }
+    const onUpdateAvailable = () => setUpdateAvailable(true)
+    window.addEventListener('tradr-pwa-update-available', onUpdateAvailable)
+    return () => window.removeEventListener('tradr-pwa-update-available', onUpdateAvailable)
   }, [])
 
   async function handleUpdate() {
-    if (!updateSW || updating) return
+    if (updating) return
     setUpdating(true)
-    try { await updateSW(true) }
-    catch { setUpdating(false) }
+    try {
+      await applyPwaUpdate()
+    } catch {
+      setUpdating(false)
+    }
   }
 
   if (!updateAvailable) return null
 
+  const path = window.location.pathname.endsWith('/')
+    ? window.location.pathname.slice(0, -1)
+    : window.location.pathname
   const host = window.location.hostname.toLowerCase()
-  const appLabel = host === 'errand.tradrr.store' || window.location.pathname.replace(/\/+$/, '') === '/errand' ? 'Errand' : host === 'admin.tradrr.store' || window.location.pathname.replace(/\/+$/, '') === '/admin' ? 'tradR Admin' : 'tradR.'
+  const appLabel = host === 'errand.tradrr.store' || path === '/errand'
+    ? 'Errand'
+    : host === 'admin.tradrr.store' || path === '/admin'
+      ? 'tradR Admin'
+      : 'tradR.'
 
   return (
     <aside className="pwa-update-banner" role="status" aria-live="polite">
