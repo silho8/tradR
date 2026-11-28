@@ -161,8 +161,12 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
 
     const onInstallReady = () => {
-      setInstallPrompt(deferredInstallPrompt)
-      setNativeStatus(`Your browser is ready to install ${productName}. Tap Install ${productName} to continue.`)
+      const prompt = (window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? deferredInstallPrompt
+      if (prompt) {
+        deferredInstallPrompt = prompt
+        setInstallPrompt(prompt)
+        setNativeStatus(`Your browser is ready to install ${productName}. Tap Install ${productName} to continue.`)
+      }
     }
     const onAppInstalled = () => {
       deferredInstallPrompt = null
@@ -193,12 +197,12 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
       setNativeStatus(`iPhone does not support the Android-style install popup. Use “How to install” to add ${productName} from Safari or Chrome’s share menu.`)
       return
     }
-    if (!installPrompt) {
-      setNativeStatus(`${productName} has not exposed its install prompt yet. This can happen when the app manifest or service-worker setup has not finished loading. Refresh this page and try again; the manual install steps are also available below.`)
+    const promptEvent = installPrompt ?? (window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? deferredInstallPrompt
+    if (!promptEvent) {
+      setNativeStatus(`${productName} has not exposed its install prompt yet. Chrome has not provided a native install event for this page. Use Chrome's address-bar install icon or menu to install it manually.`)
       return
     }
     try {
-      const promptEvent = installPrompt
       await promptEvent.prompt()
       const choice = await promptEvent.userChoice
       deferredInstallPrompt = null
