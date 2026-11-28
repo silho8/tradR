@@ -14,8 +14,9 @@
       // Write the correct manifest during HTML parsing, before the browser evaluates installability.
       (function () {
         const path = window.location.pathname.replace(/\/+$/, '') || '/';
-        const isErrand = path === '/errand';
-        const isAdmin = path === '/admin';
+        const host = window.location.hostname.toLowerCase();
+        const isErrand = host === 'errand.tradrr.store' || path === '/errand';
+        const isAdmin = host === 'admin.tradrr.store' || path === '/admin';
         const manifestPath = isErrand ? '/errand.webmanifest' : isAdmin ? '/admin.webmanifest' : '/manifest.webmanifest';
         document.write('<link rel="manifest" href="' + manifestPath + '">');
         if (isErrand || isAdmin) {
