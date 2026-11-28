@@ -206,8 +206,9 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
     }
     window.addEventListener('tradr-install-ready', onInstallReady)
     // The browser may dispatch beforeinstallprompt before this effect subscribes.
-    // Re-sync the prompt captured at module scope so the button never stays stale.
-    if (deferredInstallPrompt) onInstallReady()
+    // Re-sync both module state and the global prompt: the browser event can
+    // arrive after this module loads but before this component subscribes.
+    if (deferredInstallPrompt || (window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt) onInstallReady()
     setOpen(true)
     return () => {
       cancelled = true
