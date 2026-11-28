@@ -19,12 +19,14 @@ type DeliveryTask = {
   items: Array<{ title: string; quantity: number }>
 }
 
-export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onToast }: {
+export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onToast, standalone = false, vapidPublicKey }: {
   db: SupabaseClient
   user: { id: string } | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onToast: (message: string) => void
+  standalone?: boolean
+  vapidPublicKey?: string
 }) {
   const [agent, setAgent] = useState<Agent | null>(null)
   const [name, setName] = useState('')
@@ -70,6 +72,11 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
     event.preventDefault()
     if (busy) return
     if (!governmentId || !selfie) { onToast('Upload a government-issued ID and a clear selfie to continue.'); return }
+    if (!vapidPublicKey || !('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) { onToast('Push notifications are required for Errand agents, but this browser does not support the required setup.'); return }
+    if (Notification.permission !== 'granted') {
+      const permission = Notification.permission === 'denied' ? 'denied' : await Notification.requestPermission()
+      if (permission !== 'granted') { onToast('Allow notifications to continue with your Errand application. You can enable them in your browser site settings.'); return }
+    }
     if (!['image/jpeg', 'image/png', 'application/pdf'].includes(governmentId.type) || !['image/jpeg', 'image/png'].includes(selfie.type)) {
       onToast('Use JPG or PNG for your selfie, and JPG, PNG or PDF for your ID.'); return
     }
@@ -82,6 +89,12 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
       const selfieExt = selfie.type === 'image/png' ? 'png' : 'jpg'
       const idPath = user!.id + '/government-id-' + crypto.randomUUID() + '.' + idExt
       const selfiePath = user!.id + '/selfie-' + crypto.randomUUID() + '.' + selfieExt
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription() ?? await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: Uint8Array.from(atob(vapidPublicKey.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - vapidPublicKey.length % 4) % 4)), char => char.charCodeAt(0)) })
+      const pushJson = subscription.toJSON()
+      if (!pushJson.endpoint || !pushJson.keys?.p256dh || !pushJson.keys?.auth) throw new Error('Could not complete secure push-notification setup.')
+      const { error: pushError } = await db.from('push_subscriptions').upsert({ user_id: user!.id, endpoint: pushJson.endpoint, p256dh: pushJson.keys.p256dh, auth: pushJson.keys.auth, updated_at: new Date().toISOString() }, { onConflict: 'endpoint' })
+      if (pushError) throw pushError
       const { error: idError } = await db.storage.from('delivery-agent-verification').upload(idPath, governmentId, { contentType: governmentId.type, upsert: false })
       if (idError) throw idError
       const { error: selfieError } = await db.storage.from('delivery-agent-verification').upload(selfiePath, selfie, { contentType: selfie.type, upsert: false })
@@ -153,14 +166,14 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
   const availableTasks = tasks.filter(task => task.is_available)
   const assignedTasks = tasks.filter(task => !task.is_available)
 
-  return <div className="modal-backdrop delivery-agent-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !busy) onOpenChange(false) }}>
-    <section className="form-modal delivery-agent-modal" role="dialog" aria-modal="true" aria-labelledby="delivery-agent-heading">
-      <button type="button" className="modal-close modal-back-button" onClick={() => onOpenChange(false)} aria-label="Close delivery portal">←</button>
+  return <div className={standalone ? 'delivery-agent-standalone' : 'modal-backdrop delivery-agent-backdrop'} onMouseDown={event => { if (!standalone && event.target === event.currentTarget && !busy) onOpenChange(false) }}>
+    <section className={standalone ? 'delivery-agent-modal delivery-agent-page' : 'form-modal delivery-agent-modal'} role="dialog" aria-modal="true" aria-labelledby="delivery-agent-heading">
+      <button type="button" className="modal-close modal-back-button" onClick={() => onOpenChange(false)} aria-label={standalone ? 'Return to marketplace' : 'Close delivery portal'}>←</button>
       <div className="modal-brand-mark">t<span>.</span></div>
-      <span className="eyebrow">TRADR DELIVERY NETWORK</span>
-      <h2 id="delivery-agent-heading">Delivery work.</h2>
-      <p>New jobs go to every approved agent at once. The first agent to accept secures the delivery.</p>
-      {!user ? <div className="dashboard-empty"><b>Sign in to continue.</b><span>Delivery-agent accounts are linked to your tradR. login.</span></div> : loading ? <div className="dashboard-empty">Loading your delivery account…</div> : agent?.status === 'suspended' ? <div className="dashboard-empty"><b>Account suspended.</b><span>Contact the tradR. team if you believe this is a mistake.</span></div> : agent?.status === 'pending' ? <div className="dashboard-empty"><b>Application received.</b><span>Your details are with the tradR. team. You’ll be able to accept delivery jobs after approval.</span><small>{agent.display_name} · {agent.phone}</small><button type="button" className="confirmation-secondary" onClick={() => void load()}>Refresh application</button></div> : agent?.status === 'approved' ? <>
+      <span className="eyebrow">TRADR. ERRAND · DELIVERY NETWORK</span>
+      <h2 id="delivery-agent-heading">Your next delivery starts here.</h2>
+      <p>Apply to become a delivery agent, manage your approval, and accept nearby campus deliveries. The first approved agent to accept an open job secures it.</p>
+      {!user ? <div className="dashboard-empty"><b>Sign in to continue.</b><span>Sign in or create an account to submit your separate Errand agent application. Marketplace seller approval does not grant delivery-agent access.</span></div> : loading ? <div className="dashboard-empty">Loading your delivery account…</div> : agent?.status === 'suspended' ? <div className="dashboard-empty"><b>Account suspended.</b><span>Contact the tradR. team if you believe this is a mistake.</span></div> : agent?.status === 'pending' ? <div className="dashboard-empty"><b>Application received.</b><span>Your details are with the tradR. team. You’ll be able to accept delivery jobs after approval.</span><small>{agent.display_name} · {agent.phone}</small><button type="button" className="confirmation-secondary" onClick={() => void load()}>Refresh application</button></div> : agent?.status === 'approved' ? <>
         <div className="seller-orders-summary"><article><span>OPEN JOBS</span><b>{availableTasks.length}</b></article><article><span>YOUR ACTIVE TASKS</span><b>{assignedTasks.filter(task => !['delivered', 'failed', 'cancelled'].includes(task.delivery_status)).length}</b></article></div>
         <section className="delivery-agent-jobs">
           <div className="section-topline"><span>AVAILABLE NOW</span><span>FIRST ACCEPTANCE WINS</span></div>

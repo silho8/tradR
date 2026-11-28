@@ -9,6 +9,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#102a43" />
     <script>
+      // Select a separate install identity for the standalone Errand agent app.
+      document.addEventListener('DOMContentLoaded', function () {
+        if (window.location.pathname.replace(/\/+$/, '') === '/errand') {
+          const manifest = document.querySelector('link[rel="manifest"]');
+          if (manifest) manifest.setAttribute('href', '/errand.webmanifest');
+          document.title = 'tradR. Errand — Delivery agents';
+          const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          if (appleTitle) appleTitle.setAttribute('content', 'Errand');
+          const theme = document.querySelector('meta[name="theme-color"]');
+          if (theme) theme.setAttribute('content', '#172d22');
+          const icon = document.querySelector('link[rel="icon"]');
+          if (icon) icon.setAttribute('href', '/errand-mark.svg');
+        }
+      });
       // Capture the browser install event before the app's module bundle loads.
       window.addEventListener('beforeinstallprompt', function (event) {
         event.preventDefault();
