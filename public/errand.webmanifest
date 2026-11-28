@@ -1,10 +1,10 @@
 {
-  "id": "/errand",
+  "id": "/",
   "name": "tradR. Errand Agent App",
   "short_name": "Errand",
   "description": "Apply for and manage delivery work with tradR. around Lead City University.",
-  "start_url": "/errand",
-  "scope": "/errand",
+  "start_url": "/?pwa=errand",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#172d22",
