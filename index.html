@@ -9,16 +9,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#102a43" />
     <link rel="icon" type="image/svg+xml" href="/tradr-mark.svg" />
+    <link id="app-manifest" rel="manifest" href="/manifest.webmanifest" />
     <title>tradR. — Campus finds, made easy</title>
     <script>
-      // Write the correct manifest during HTML parsing, before the browser evaluates installability.
+      // The marketplace manifest is linked statically so browsers can discover it
+      // during HTML parsing. Switch only the dedicated admin/errand origins.
       (function () {
         const path = window.location.pathname.replace(/\/+$/, '') || '/';
         const host = window.location.hostname.toLowerCase();
         const isErrand = host === 'errand.tradrr.store' || path === '/errand';
         const isAdmin = host === 'admin.tradrr.store' || path === '/admin';
         const manifestPath = isErrand ? '/errand.webmanifest' : isAdmin ? '/admin.webmanifest' : '/manifest.webmanifest';
-        document.write('<link rel="manifest" href="' + manifestPath + '">');
+        const manifestLink = document.getElementById('app-manifest');
+        if (manifestLink) manifestLink.setAttribute('href', manifestPath);
         if (isErrand || isAdmin) {
           document.title = isErrand ? 'tradR. Errand — Delivery agents' : 'tradR. Admin — Management';
           const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
