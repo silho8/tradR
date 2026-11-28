@@ -10,8 +10,8 @@
   "theme_color": "#172d22",
   "background_color": "#f4f6f2",
   "icons": [
-    { "src": "/errand-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/tradr-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/tradr-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/errand-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/errand-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/errand-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

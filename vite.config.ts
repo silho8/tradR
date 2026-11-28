@@ -25,21 +25,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
-      includeAssets: ['tradr-mark.svg'],
-      manifest: {
-        name: 'tradR. Campus Marketplace',
-        short_name: 'tradR.',
-        description: 'The student marketplace for Lead City University.',
-        theme_color: '#102a43',
-        background_color: '#f7f8f4',
-        display: 'standalone',
-        start_url: '/',
-        icons: [
-          { src: '/tradr-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/tradr-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
-          { src: '/tradr-mark.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }
-        ]
-      },
+      includeAssets: ['tradr-mark.svg', 'admin-mark.svg', 'errand-mark.svg'],
+      manifest: false,
+      // Route-specific manifests are served from public/ and selected before the page loads.
       workbox: {
         importScripts: ['/push-sw.js'],
         navigateFallback: '/index.html',

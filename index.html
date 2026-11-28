@@ -8,21 +8,26 @@
     <meta name="apple-mobile-web-app-title" content="tradR." />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#102a43" />
+    <link rel="icon" type="image/svg+xml" href="/tradr-mark.svg" />
+    <title>tradR. — Campus finds, made easy</title>
     <script>
-      // Select a separate install identity for the standalone Errand agent app.
-      document.addEventListener('DOMContentLoaded', function () {
-        if (window.location.pathname.replace(/\/+$/, '') === '/errand') {
-          const manifest = document.querySelector('link[rel="manifest"]');
-          if (manifest) manifest.setAttribute('href', '/errand.webmanifest');
-          document.title = 'tradR. Errand — Delivery agents';
+      // Write the correct manifest during HTML parsing, before the browser evaluates installability.
+      (function () {
+        const path = window.location.pathname.replace(/\/+$/, '') || '/';
+        const isErrand = path === '/errand';
+        const isAdmin = path === '/admin';
+        const manifestPath = isErrand ? '/errand.webmanifest' : isAdmin ? '/admin.webmanifest' : '/manifest.webmanifest';
+        document.write('<link rel="manifest" href="' + manifestPath + '">');
+        if (isErrand || isAdmin) {
+          document.title = isErrand ? 'tradR. Errand — Delivery agents' : 'tradR. Admin — Management';
           const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-          if (appleTitle) appleTitle.setAttribute('content', 'Errand');
+          if (appleTitle) appleTitle.setAttribute('content', isErrand ? 'Errand' : 'tradR Admin');
           const theme = document.querySelector('meta[name="theme-color"]');
-          if (theme) theme.setAttribute('content', '#172d22');
+          if (theme) theme.setAttribute('content', isErrand ? '#172d22' : '#102a43');
           const icon = document.querySelector('link[rel="icon"]');
-          if (icon) icon.setAttribute('href', '/errand-mark.svg');
+          if (icon) icon.setAttribute('href', isErrand ? '/errand-mark.svg' : '/admin-mark.svg');
         }
-      });
+      })();
       // Capture the browser install event before the app's module bundle loads.
       window.addEventListener('beforeinstallprompt', function (event) {
         event.preventDefault();
@@ -31,11 +36,9 @@
       });
     </script>
     <meta name="description" content="Find your people, find your next thing. The student marketplace for Lead City University." />
-    <link rel="icon" type="image/svg+xml" href="/tradr-mark.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <title>tradR. — Campus finds, made easy</title>
   </head>
   <body>
     <div id="root"></div>

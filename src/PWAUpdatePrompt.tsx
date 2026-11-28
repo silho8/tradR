@@ -44,10 +44,12 @@ export default function PWAUpdatePrompt() {
 
   if (!updateAvailable) return null
 
+  const appLabel = window.location.pathname.replace(/\/+$/, '') === '/errand' ? 'Errand' : window.location.pathname.replace(/\/+$/, '') === '/admin' ? 'tradR Admin' : 'tradR.'
+
   return (
     <aside className="pwa-update-banner" role="status" aria-live="polite">
       <span className="pwa-update-icon" aria-hidden="true">↻</span>
-      <span className="pwa-update-copy"><strong>A new version is ready</strong><small>Update tradR. to get the latest improvements.</small></span>
+      <span className="pwa-update-copy"><strong>A new version is ready</strong><small>Update {appLabel} to get the latest improvements.</small></span>
       <button type="button" onClick={() => void handleUpdate()} disabled={updating}>{updating ? 'Updating…' : 'Update now'}</button>
     </aside>
   )

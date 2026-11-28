@@ -42,6 +42,21 @@
 .upload-preview-item img{display:block;width:100%;height:100%;object-fit:cover}
 .upload-preview-item>button{position:absolute;top:5px;right:5px;display:grid;place-items:center;width:27px;height:27px;border:0;border-radius:50%;background:rgba(16,42,67,.92);color:white;cursor:pointer}
 .shop-branding-editor{display:grid;gap:12px;padding:16px;margin:17px 0;border:1px solid var(--line);border-radius:16px;background:#fbfcf8}
+.shop-description-card{display:grid;gap:12px;padding:16px;margin:17px 0;border:1px solid var(--line);border-radius:16px;background:#fff}
+.shop-description-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.shop-description-heading>div{display:grid;gap:5px}
+.shop-description-label{font-size:8px;font-weight:900;letter-spacing:.14em;color:#81908a}
+.shop-description-heading b{font-size:12px;color:var(--navy)}
+.shop-description-edit{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;background:#f8faf5;color:var(--navy);padding:8px 11px;font-size:10px;font-weight:800}
+.shop-description-value,.shop-description-empty{margin:0;padding:12px 13px;border-radius:10px;background:#f7f8f4;color:#53666d;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.shop-description-empty{color:#8a9690;font-style:italic}
+.shop-description-input{width:100%;border:1px solid #d5ded3;background:#fff;border-radius:10px;padding:12px;font-size:12px;color:var(--navy);resize:vertical}
+.shop-description-actions{display:flex;justify-content:flex-end;gap:8px}
+.shop-description-cancel,.shop-description-save{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:9px;padding:10px 13px;font-size:10px;font-weight:800}
+.shop-description-cancel{border:1px solid var(--line);background:#fff;color:#66766f}
+.shop-description-save{border:0;background:var(--navy);color:#fff}
+.shop-description-save:disabled{opacity:.45}
+
 .shop-branding-current{display:flex;align-items:center;gap:12px}
 .shop-branding-current>div{display:grid;gap:4px}
 .shop-branding-current b{font-size:12px}

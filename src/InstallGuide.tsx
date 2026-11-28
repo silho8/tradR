@@ -107,25 +107,40 @@ function detectBrowser(): BrowserGuide {
     confirm: 'Tap “Install” or “Add” when the browser asks.',
     menuIcon: '⋮',
   }
+  if (/Edg\//i.test(ua)) return {
+    name: 'Microsoft Edge',
+    menu: 'Open the Edge menu (⋯) in the top-right corner.',
+    action: 'Choose Apps, then “Install this site as an app”.',
+    confirm: 'Confirm the installation in the dialog.',
+    menuIcon: '⋯',
+  }
+  if (/Chrome\//i.test(ua) && !/Android/i.test(ua)) return {
+    name: 'Google Chrome',
+    menu: 'Look for the install icon at the right side of the address bar, or open the ⋮ menu.',
+    action: 'Choose “Install this site as an app”.',
+    confirm: 'Confirm the installation when Chrome asks.',
+    menuIcon: '↓',
+  }
   return {
-    name: /Android/i.test(ua) ? 'Your Android browser' : 'Your mobile browser',
-    menu: 'Open your browser’s menu.',
-    action: 'Look for “Install app”, “Add to Home screen”, or a similar option.',
+    name: /Android/i.test(ua) ? 'Your Android browser' : 'Your browser',
+    menu: 'Open your browser’s menu or look for its install icon near the address bar.',
+    action: 'Choose “Install app”, “Install this site as an app”, or “Add to Home Screen”.',
     confirm: 'Follow the browser’s confirmation prompt. The wording varies by browser.',
     menuIcon: '☰',
   }
 }
 
-export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' | 'Errand' }) {
-  const productName = appName === 'Errand' ? 'Errand' : 'tradR'
-  const productDescription = appName === 'Errand' ? 'Get quicker access to delivery jobs, your agent application and your campus delivery dashboard.' : 'Get quicker access to the Lead City student marketplace. Install tradR on your home screen and open it like an app.'
-  const productWordmark = appName === 'Errand' ? 'Errand' : 'tradR.'
+export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' | 'Errand' | 'Admin' }) {
+  const productName = appName === 'Errand' ? 'Errand' : appName === 'Admin' ? 'tradR Admin' : 'tradR'
+  const productDescription = appName === 'Errand' ? 'Get quicker access to delivery jobs, your agent application and your campus delivery dashboard.' : appName === 'Admin' ? 'Open your private marketplace management desk in its own app window.' : 'Get quicker access to the Lead City student marketplace. Install tradR on your home screen and open it like an app.'
+  const productWordmark = appName === 'Errand' ? 'Errand' : appName === 'Admin' ? 'Admin' : 'tradR.'
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [nativeStatus, setNativeStatus] = useState('')
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(() => deferredInstallPrompt)
   const [isIos, setIsIos] = useState(false)
+  const [isMobileDevice, setIsMobileDevice] = useState(false)
   const guide = useMemo(() => detectBrowser(), [])
 
   useEffect(() => {
@@ -134,7 +149,15 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
     const installedDisplayModes = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay']
     const isStandalone = installedDisplayModes.some(mode => window.matchMedia(`(display-mode: ${mode})`).matches) ||
       ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
-    if (!isMobile || isStandalone || new URLSearchParams(window.location.search).has('payment')) return
+    const appPath = appName === 'Errand' ? '/errand' : appName === 'Admin' ? '/admin' : '/'
+    let openedFromAnotherTradRApp = false
+    try {
+      const referrer = new URL(document.referrer)
+      openedFromAnotherTradRApp = referrer.origin === window.location.origin && referrer.pathname.replace(/\/+$/, '') !== appPath
+    } catch { /* No referrer is normal when an app is launched from its home-screen icon. */ }
+    const alreadyRunningAsThisApp = isStandalone && !openedFromAnotherTradRApp
+    if ((!isMobile && appName !== 'Admin') || alreadyRunningAsThisApp || new URLSearchParams(window.location.search).has('payment')) return
+    setIsMobileDevice(isMobile)
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
 
     const onInstallReady = () => {
@@ -154,7 +177,7 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
       window.removeEventListener('tradr-install-ready', onInstallReady)
       window.removeEventListener('appinstalled', onAppInstalled)
     }
-  }, [productName])
+  }, [productName, appName])
 
   function closeGuide() {
     // Dismiss only for this page visit. Show the install reminder again next time
@@ -168,7 +191,7 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
       return
     }
     if (!installPrompt) {
-      setNativeStatus(`Your browser has not provided its native install prompt yet. Open tradrr.store directly in an updated browser, then try again. You can still install ${productName} manually using the guide.`)
+      setNativeStatus(`${productName} has not exposed its install prompt yet. This can happen when the app manifest or service-worker setup has not finished loading. Refresh this page and try again; the manual install steps are also available below.`)
       return
     }
     try {
@@ -212,11 +235,11 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
       <div className="install-guide-visual" aria-hidden="true">
         <span className="install-guide-orbit install-guide-orbit-one" />
         <span className="install-guide-orbit install-guide-orbit-two" />
-        <span className="install-guide-phone"><span className="install-guide-phone-camera" /><span className="install-guide-app-icon">{appName === 'Errand' ? 'e.' : <>t<span>.</span></>}</span><small>{productName}</small></span>
+        <span className="install-guide-phone"><span className="install-guide-phone-camera" /><span className="install-guide-app-icon">{appName === 'Errand' ? 'e.' : appName === 'Admin' ? 'A' : <>t<span>.</span></>}</span><small>{productName}</small></span>
         <span className="install-guide-float">{steps[step].visual}</span>
       </div>
       <p className="install-guide-browser">{guide.name}</p>
-      <h2 id="install-guide-title">Add {productName} to your phone.</h2>
+      <h2 id="install-guide-title">Add {productName} to your {isMobileDevice ? 'phone' : 'device'}.</h2>
       <p className="install-guide-copy">{productDescription}</p>
       <button className="install-guide-native" type="button" onClick={() => void installNow()}>{isIos ? `Add ${productName} to Home Screen` : `Install ${productName}`} <span>↓</span></button>
       {nativeStatus && <p className="install-guide-status" role="status">{nativeStatus}</p>}

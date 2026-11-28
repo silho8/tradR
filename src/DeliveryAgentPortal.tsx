@@ -71,14 +71,14 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
   async function apply(event: FormEvent) {
     event.preventDefault()
     if (busy) return
-    if (!governmentId || !selfie) { onToast('Upload a government-issued ID and a clear selfie to continue.'); return }
+    if (!governmentId || !selfie) { onToast('Upload your Lead City University ID card or a student-portal screenshot, plus a clear selfie.'); return }
     if (!vapidPublicKey || !('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) { onToast('Push notifications are required for Errand agents, but this browser does not support the required setup.'); return }
     if (Notification.permission !== 'granted') {
       const permission = Notification.permission === 'denied' ? 'denied' : await Notification.requestPermission()
       if (permission !== 'granted') { onToast('Allow notifications to continue with your Errand application. You can enable them in your browser site settings.'); return }
     }
     if (!['image/jpeg', 'image/png', 'application/pdf'].includes(governmentId.type) || !['image/jpeg', 'image/png'].includes(selfie.type)) {
-      onToast('Use JPG or PNG for your selfie, and JPG, PNG or PDF for your ID.'); return
+      onToast('Use JPG, PNG or PDF for your LCU ID card or portal proof, and JPG or PNG for your selfie.'); return
     }
     if (governmentId.size > 5 * 1024 * 1024 || selfie.size > 5 * 1024 * 1024) {
       onToast('Each verification file must be 5 MB or smaller.'); return
@@ -87,7 +87,7 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
     try {
       const idExt = governmentId.type === 'application/pdf' ? 'pdf' : governmentId.type === 'image/png' ? 'png' : 'jpg'
       const selfieExt = selfie.type === 'image/png' ? 'png' : 'jpg'
-      const idPath = user!.id + '/government-id-' + crypto.randomUUID() + '.' + idExt
+      const idPath = user!.id + '/lcu-student-proof-' + crypto.randomUUID() + '.' + idExt
       const selfiePath = user!.id + '/selfie-' + crypto.randomUUID() + '.' + selfieExt
       const registration = await navigator.serviceWorker.ready
       const subscription = await registration.pushManager.getSubscription() ?? await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: Uint8Array.from(atob(vapidPublicKey.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - vapidPublicKey.length % 4) % 4)), char => char.charCodeAt(0)) })
@@ -104,7 +104,7 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
         p_government_id_path: idPath, p_selfie_path: selfiePath,
       })
       if (error) throw error
-      onToast('Your application and identity documents have been submitted securely. The tradR. team will review them.')
+      onToast('Your application, LCU student proof and selfie have been submitted securely. The tradR. team will review them.')
       setGovernmentId(null); setSelfie(null); await load()
     } catch (error) {
       onToast(error instanceof Error ? error.message : 'Could not submit your application.')
@@ -204,13 +204,13 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
           </article>)}</div> : <div className="dashboard-empty"><b>No accepted jobs yet.</b><span>Accept an open job above when you are ready to handle it.</span></div>}
         </section>
       </> : <form onSubmit={apply} className="delivery-agent-application">
-        <div className="dashboard-empty"><b>Become a tradR delivery agent.</b><span>Submit your name, active phone number, government-issued ID and a clear selfie. Your documents are stored privately and reviewed by the tradR. team before you can accept jobs.</span></div>
-        <label>Full name<input value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={100} required placeholder="Name on your ID"/></label>
+        <div className="dashboard-empty"><b>Become a tradR delivery agent.</b><span>Submit your name, active phone number, Lead City University ID card or a screenshot of your student portal, and a clear selfie. Your documents are stored privately and reviewed by the tradR. team before you can accept jobs.</span></div>
+        <label>Full name<input value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={100} required placeholder="Your name as shown on your LCU profile"/></label>
         <label>Phone number<input type="tel" value={phone} onChange={event => setPhone(event.target.value)} minLength={10} maxLength={30} required placeholder="+234…"/></label>
-        <label>Government-issued ID <small>JPG, PNG or PDF · max 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" required onChange={event => setGovernmentId(event.target.files?.[0] || null)}/></label>
+        <label>Lead City University student proof <small>Upload your LCU ID card or a screenshot of your student portal · JPG, PNG or PDF · max 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" required onChange={event => setGovernmentId(event.target.files?.[0] || null)}/></label>
         <label>Clear selfie <small>JPG or PNG · max 5 MB</small><input type="file" accept="image/jpeg,image/png" required onChange={event => setSelfie(event.target.files?.[0] || null)}/></label>
         <button className="modal-primary" disabled={busy === 'apply'}>{busy === 'apply' ? 'Submitting…' : 'Submit application'} <span>↗</span></button>
-        <small className="form-footnote">Only apply if you can reliably collect and deliver orders around Lead City University.</small>
+        <small className="form-footnote">Only current Lead City University students should apply. Your LCU student proof and selfie are reviewed privately before agent approval.</small>
       </form>}
     </section>
   </div>
