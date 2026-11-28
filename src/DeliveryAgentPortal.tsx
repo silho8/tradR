@@ -39,6 +39,18 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState('')
   const [codeInputs, setCodeInputs] = useState<Record<string, string>>({})
+  const [applicationEmailState, setApplicationEmailState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false)
+
+  async function sendApplicationEmail() {
+    setApplicationEmailState('sending')
+    const { data, error } = await db.functions.invoke('delivery-agent-notifications', { body: { action: 'application_submitted' } })
+    if (error || data?.error || !data?.applicant_email_sent) {
+      setApplicationEmailState('failed')
+      return
+    }
+    setApplicationEmailState('sent')
+  }
 
   const load = useCallback(async () => {
     if (!user) { setAgent(null); setTasks([]); return }
@@ -104,8 +116,11 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
         p_government_id_path: idPath, p_selfie_path: selfiePath,
       })
       if (error) throw error
-      onToast('Your application, LCU student proof and selfie have been submitted securely. The tradR. team will review them.')
-      setGovernmentId(null); setSelfie(null); await load()
+      setApplicationSubmitted(true)
+      setGovernmentId(null); setSelfie(null)
+      await load()
+      await sendApplicationEmail()
+      onToast('Your delivery-agent application has been received and is awaiting review.')
     } catch (error) {
       onToast(error instanceof Error ? error.message : 'Could not submit your application.')
     } finally { setBusy('') }
@@ -173,7 +188,7 @@ export default function DeliveryAgentPortal({ db, user, open, onOpenChange, onTo
       <span className="eyebrow">TRADR. ERRAND · DELIVERY NETWORK</span>
       <h2 id="delivery-agent-heading">Your next delivery starts here.</h2>
       <p>Apply to become a delivery agent, manage your approval, and accept nearby campus deliveries. The first approved agent to accept an open job secures it.</p>
-      {!user ? <div className="dashboard-empty"><b>Sign in to continue.</b><span>Sign in or create an account to submit your separate Errand agent application. Marketplace seller approval does not grant delivery-agent access.</span></div> : loading ? <div className="dashboard-empty">Loading your delivery account…</div> : agent?.status === 'suspended' ? <div className="dashboard-empty"><b>Account suspended.</b><span>Contact the tradR. team if you believe this is a mistake.</span></div> : agent?.status === 'pending' ? <div className="dashboard-empty"><b>Application received.</b><span>Your details are with the tradR. team. You’ll be able to accept delivery jobs after approval.</span><small>{agent.display_name} · {agent.phone}</small><button type="button" className="confirmation-secondary" onClick={() => void load()}>Refresh application</button></div> : agent?.status === 'approved' ? <>
+      {!user ? <div className="dashboard-empty"><b>Sign in to continue.</b><span>Sign in or create an account to submit your separate Errand agent application. Marketplace seller approval does not grant delivery-agent access.</span></div> : loading ? <div className="dashboard-empty">Loading your delivery account…</div> : agent?.status === 'suspended' ? <div className="dashboard-empty"><b>Account suspended.</b><span>Contact the tradR. team if you believe this is a mistake.</span></div> : agent?.status === 'pending' ? <div className="delivery-agent-confirmation" role="status" aria-live="polite"><div className="delivery-agent-confirmation-icon">✓</div><span className="eyebrow">APPLICATION SUBMITTED</span><h3>{applicationSubmitted ? 'You’re officially in the review queue.' : 'Your application is with us.'}</h3><p>Thanks, {agent.display_name}. We’ve securely received your LCU student proof and selfie. The tradR. team will review your details. You’ll receive an email when your application is submitted and when a decision is made.</p><div className="delivery-agent-confirmation-details"><span>Applicant</span><b>{agent.display_name}</b><span>Phone number</span><b>{agent.phone}</b><span>Current status</span><b className="delivery-agent-pending-status">Pending review</b></div><div className="delivery-agent-email-status">{applicationEmailState === 'sending' ? 'Sending your confirmation email…' : applicationEmailState === 'sent' ? '✓ Confirmation email sent. Check your inbox.' : applicationEmailState === 'failed' ? 'Your application is saved, but the email could not be sent yet.' : 'Your application is saved securely.'}</div>{applicationEmailState !== 'sent' && <button type="button" className="confirmation-secondary" disabled={applicationEmailState === 'sending'} onClick={() => void sendApplicationEmail()}>{applicationEmailState === 'sending' ? 'Sending…' : 'Send confirmation email'}</button>}<button type="button" className="confirmation-secondary" onClick={() => void load()}>Refresh application status</button></div> : agent?.status === 'approved' ? <>
         <div className="seller-orders-summary"><article><span>OPEN JOBS</span><b>{availableTasks.length}</b></article><article><span>YOUR ACTIVE TASKS</span><b>{assignedTasks.filter(task => !['delivered', 'failed', 'cancelled'].includes(task.delivery_status)).length}</b></article></div>
         <section className="delivery-agent-jobs">
           <div className="section-topline"><span>AVAILABLE NOW</span><span>FIRST ACCEPTANCE WINS</span></div>

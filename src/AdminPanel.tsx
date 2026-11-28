@@ -110,7 +110,11 @@ export default function AdminPanel({ db, onClose, standalone = false }: AdminPan
     setBusyId(agentId); setNotice(''); setFailure('')
     const { data, error } = await db.rpc('admin_review_delivery_agent', { p_agent_id: agentId, p_status: status })
     if (error || data?.error) setFailure(data?.error || error?.message || 'Could not update this agent.')
-    else setNotice(status === 'approved' ? 'Delivery agent approved.' : 'Delivery agent suspended.')
+    else {
+      const { data: emailData, error: emailError } = await db.functions.invoke('delivery-agent-notifications', { body: { action: 'status_updated', agent_id: agentId, status } })
+      setNotice(status === 'approved' ? 'Delivery agent approved.' : 'Delivery agent suspended.')
+      if (emailError || emailData?.error || !emailData?.applicant_email_sent) setFailure('The review decision was saved, but the applicant email could not be sent. Please retry the notification.')
+    }
     await loadQueue(); setBusyId('')
   }
 
