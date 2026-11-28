@@ -116,7 +116,10 @@ function detectBrowser(): BrowserGuide {
   }
 }
 
-export default function InstallGuide() {
+export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' | 'Errand' }) {
+  const productName = appName === 'Errand' ? 'Errand' : 'tradR'
+  const productDescription = appName === 'Errand' ? 'Get quicker access to delivery jobs, your agent application and your campus delivery dashboard.' : 'Get quicker access to the Lead City student marketplace. Install tradR on your home screen and open it like an app.'
+  const productWordmark = appName === 'Errand' ? 'Errand' : 'tradR.'
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const [tutorialOpen, setTutorialOpen] = useState(false)
@@ -136,7 +139,7 @@ export default function InstallGuide() {
 
     const onInstallReady = () => {
       setInstallPrompt(deferredInstallPrompt)
-      setNativeStatus('Your browser is ready to install tradR. Tap Install tradR to continue.')
+      setNativeStatus(`Your browser is ready to install ${productName}. Tap Install ${productName} to continue.`)
     }
     const onAppInstalled = () => {
       deferredInstallPrompt = null
@@ -151,7 +154,7 @@ export default function InstallGuide() {
       window.removeEventListener('tradr-install-ready', onInstallReady)
       window.removeEventListener('appinstalled', onAppInstalled)
     }
-  }, [])
+  }, [productName])
 
   function closeGuide() {
     // Dismiss only for this page visit. Show the install reminder again next time
@@ -161,11 +164,11 @@ export default function InstallGuide() {
 
   async function installNow() {
     if (isIos) {
-      setNativeStatus('iPhone does not support the Android-style install popup. Use “How to install” to add tradR from Safari or Chrome’s share menu.')
+      setNativeStatus(`iPhone does not support the Android-style install popup. Use “How to install” to add ${productName} from Safari or Chrome’s share menu.`)
       return
     }
     if (!installPrompt) {
-      setNativeStatus('Your browser has not provided its native install prompt yet. Make sure you opened tradrr.store directly in an updated browser, then try again. You can still install manually using the guide.')
+      setNativeStatus(`Your browser has not provided its native install prompt yet. Open tradrr.store directly in an updated browser, then try again. You can still install ${productName} manually using the guide.`)
       return
     }
     try {
@@ -176,10 +179,10 @@ export default function InstallGuide() {
       ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
       setInstallPrompt(null)
       if (choice.outcome === 'accepted') {
-        setNativeStatus('tradR is being added to your device.')
+        setNativeStatus(`${productName} is being added to your device.`)
         closeGuide()
       } else {
-        setNativeStatus('Installation was cancelled. You can tap Install tradR again if your browser offers it, or use the manual guide.')
+        setNativeStatus(`Installation was cancelled. You can tap Install ${productName} again if your browser offers it, or use the manual guide.`)
       }
     } catch {
       deferredInstallPrompt = null
@@ -194,28 +197,28 @@ export default function InstallGuide() {
   const steps = guide.inApp ? [
     { label: 'Open the menu', detail: guide.menu, visual: guide.menuIcon },
     { label: 'Switch browsers', detail: guide.action, visual: '↗' },
-    { label: 'Install tradR', detail: guide.confirm, visual: 't.' },
+    { label: `Install ${productName}`, detail: guide.confirm.replaceAll('tradR', productName), visual: appName === 'Errand' ? 'e.' : 't.' },
   ] : [
     { label: 'Open the menu', detail: guide.menu, visual: guide.menuIcon },
-    { label: 'Add tradR', detail: guide.action, visual: '＋' },
-    { label: 'You’re in', detail: guide.confirm, visual: 't.' },
+    { label: `Add ${productName}`, detail: guide.action.replaceAll('tradR', productName), visual: '＋' },
+    { label: 'You’re in', detail: guide.confirm.replaceAll('tradR', productName), visual: appName === 'Errand' ? 'e.' : 't.' },
   ]
 
   return <div className="install-guide-backdrop" role="presentation">
     <section className="install-guide" role="dialog" aria-modal="true" aria-labelledby="install-guide-title">
       <button className="install-guide-close" type="button" onClick={closeGuide} aria-label="Close install guide">×</button>
-      <div className="install-guide-brand"><span className="install-guide-mark">t<span>.</span></span><span>tradR<span>.</span></span></div>
+      <div className="install-guide-brand"><span className="install-guide-mark">t<span>.</span></span><span>{productWordmark}</span></div>
       <div className="install-guide-kicker">A LITTLE CAMPUS HACK</div>
       <div className="install-guide-visual" aria-hidden="true">
         <span className="install-guide-orbit install-guide-orbit-one" />
         <span className="install-guide-orbit install-guide-orbit-two" />
-        <span className="install-guide-phone"><span className="install-guide-phone-camera" /><span className="install-guide-app-icon">t<span>.</span></span><small>tradR</small></span>
+        <span className="install-guide-phone"><span className="install-guide-phone-camera" /><span className="install-guide-app-icon">{appName === 'Errand' ? 'e.' : <>t<span>.</span></>}</span><small>{productName}</small></span>
         <span className="install-guide-float">{steps[step].visual}</span>
       </div>
       <p className="install-guide-browser">{guide.name}</p>
-      <h2 id="install-guide-title">Add tradR to your phone.</h2>
-      <p className="install-guide-copy">Get quicker access to the Lead City student marketplace. Install tradR on your home screen and open it like an app.</p>
-      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{isIos ? 'Add tradR to Home Screen' : 'Install tradR'} <span>↓</span></button>
+      <h2 id="install-guide-title">Add {productName} to your phone.</h2>
+      <p className="install-guide-copy">{productDescription}</p>
+      <button className="install-guide-native" type="button" onClick={() => void installNow()}>{isIos ? `Add ${productName} to Home Screen` : `Install ${productName}`} <span>↓</span></button>
       {nativeStatus && <p className="install-guide-status" role="status">{nativeStatus}</p>}
       <button className="install-guide-manual" type="button" onClick={() => { setTutorialOpen(value => !value); setStep(0); setNativeStatus('') }}>{tutorialOpen ? 'Hide installation guide' : 'How to install manually'}</button>
       {tutorialOpen && <div className="install-guide-tutorial">

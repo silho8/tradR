@@ -43,7 +43,7 @@ export default defineConfig({
       workbox: {
         importScripts: ['/push-sw.js'],
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2,webmanifest}'],
         globIgnores: ['**/zod-*.js'],
         runtimeCaching: [
           {

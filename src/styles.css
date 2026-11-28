@@ -1374,3 +1374,29 @@
  .admin-support-chat{max-height:none}
  .admin-support-messages article{max-width:96%}
 }
+
+
+/* Dedicated /admin route: use the full viewport rather than a modal frame. */
+.admin-route-backdrop{position:fixed;inset:0;z-index:120;padding:0;align-items:stretch;justify-content:stretch;background:#102A43}
+.admin-route-backdrop .admin-workspace{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;box-shadow:none}
+@media(max-width:650px){
+  .admin-route-backdrop{padding:0}
+  .admin-route-backdrop .admin-workspace{width:100%;height:100dvh;grid-template-rows:auto minmax(0,1fr);border-radius:0}
+  .admin-route-backdrop .admin-sidebar{padding-top:max(12px,env(safe-area-inset-top))}
+  .admin-route-backdrop .admin-main{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+}
+
+/* tradR. Errand is a dedicated agent-facing app surface at /errand. */
+.delivery-agent-standalone{position:fixed;inset:0;z-index:39;background:#f4f6f2;overflow-y:auto;padding:max(24px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:flex-start}
+.delivery-agent-page{position:relative;width:min(100%,760px);max-height:none;min-height:calc(100dvh - 52px);margin:auto;padding:clamp(28px,5vw,54px);border:1px solid #dce4df;border-radius:18px;background:#fff;box-shadow:0 24px 80px #152b2414}
+.delivery-agent-page .modal-brand-mark{width:46px;height:46px;margin-bottom:24px}
+.delivery-agent-page h2{max-width:560px;font-size:clamp(32px,6vw,54px);line-height:1.04;letter-spacing:-.045em}
+.delivery-agent-page>p{max-width:560px;line-height:1.65;color:#64736c}
+.delivery-agent-page .modal-back-button{top:18px;left:18px}
+.delivery-agent-page .delivery-agent-application{max-width:560px;margin-top:26px}
+.delivery-agent-page .delivery-agent-jobs{margin-top:28px}
+@media(max-width:600px){.delivery-agent-standalone{padding:0}.delivery-agent-page{min-height:100dvh;border:0;border-radius:0;padding:calc(64px + env(safe-area-inset-top)) 19px calc(30px + env(safe-area-inset-bottom));box-shadow:none}.delivery-agent-page .modal-back-button{top:calc(14px + env(safe-area-inset-top));left:18px}}
+.seller-withdrawals{display:grid;gap:14px;margin:24px 0;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff)}
+.seller-withdrawal-balance{display:grid;gap:5px;padding:17px;border-radius:10px;background:#f1f5ef}.seller-withdrawal-balance>span{font-size:9px;font-weight:850;letter-spacing:.1em;color:#617365}.seller-withdrawal-balance>b{font-size:clamp(25px,5vw,36px);letter-spacing:-.04em;color:#172d22}.seller-withdrawal-balance>small{font-size:11px;line-height:1.5;color:#64736c}
+.seller-withdrawal-history{display:grid;gap:10px}.seller-withdrawal-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}.seller-withdrawal-row>div{display:grid;gap:4px}.seller-withdrawal-row>div>b{font-size:16px}.seller-withdrawal-row small{font-size:10px;color:var(--muted)}
+.admin-recipient-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.admin-recipient-row>span{display:grid;gap:3px}.admin-recipient-row b{font-size:11px}.admin-recipient-row small{font-size:9px;color:var(--muted)}.admin-recipient-form{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px;margin-top:14px}.admin-recipient-form label{display:grid;gap:6px;font-size:9px;font-weight:800}.admin-recipient-form input{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--navy);font:inherit;font-size:11px}.admin-recipient-form button{min-height:38px;padding:0 12px}@media(max-width:600px){.admin-recipient-form{grid-template-columns:1fr}.admin-recipient-form button{width:100%}}
