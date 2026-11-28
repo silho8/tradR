@@ -149,14 +149,14 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
     const installedDisplayModes = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay']
     const isStandalone = installedDisplayModes.some(mode => window.matchMedia(`(display-mode: ${mode})`).matches) ||
       ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
-    const appPath = appName === 'Errand' ? '/errand' : appName === 'Admin' ? '/admin' : '/'
-    let openedFromAnotherTradRApp = false
-    try {
-      const referrer = new URL(document.referrer)
-      openedFromAnotherTradRApp = referrer.origin === window.location.origin && referrer.pathname.replace(/\/+$/, '') !== appPath
-    } catch { /* No referrer is normal when an app is launched from its home-screen icon. */ }
-    const alreadyRunningAsThisApp = isStandalone && !openedFromAnotherTradRApp
-    if ((!isMobile && appName !== 'Admin') || alreadyRunningAsThisApp || new URLSearchParams(window.location.search).has('payment')) return
+    const host = window.location.hostname.toLowerCase()
+    const isOwnAppOrigin = appName === 'Errand'
+      ? host === 'errand.tradrr.store'
+      : appName === 'Admin'
+        ? host === 'admin.tradrr.store'
+        : host === 'tradrr.store' || host === 'www.tradrr.store'
+    const alreadyRunningAsThisApp = isStandalone && isOwnAppOrigin
+    if (alreadyRunningAsThisApp || new URLSearchParams(window.location.search).has('payment')) return
     setIsMobileDevice(isMobile)
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
 
@@ -180,8 +180,8 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
   }, [productName, appName])
 
   function closeGuide() {
-    // Dismiss only for this page visit. Show the install reminder again next time
-    // the site is opened in a browser, until it is running as an installed app.
+    // Dismiss only for this page visit. The guide reappears in browser mode,
+    // but stays hidden whenever this app is running in its own installed window.
     setOpen(false)
   }
 
