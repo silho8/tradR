@@ -25,13 +25,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
-      includeAssets: ['tradr-mark.svg', 'admin-mark.svg', 'errand-mark.svg'],
+      includeAssets: ['tradr-mark.svg', 'admin-mark.svg', 'errand-mark.svg', 'admin-icon-192.png', 'admin-icon-512.png', 'errand-icon-192.png', 'errand-icon-512.png'],
       manifest: false,
       // Route-specific manifests are served from public/ and selected before the page loads.
       workbox: {
         importScripts: ['/push-sw.js'],
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,woff2,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
         globIgnores: ['**/zod-*.js'],
         runtimeCaching: [
           {
