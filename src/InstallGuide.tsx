@@ -9,6 +9,26 @@ let deferredInstallPrompt: InstallPromptEvent | null = typeof window !== 'undefi
   ? ((window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? null)
   : null
 
+// Remember per app (marketplace / admin / errand) so the guide doesn't nag on every visit.
+const DISMISS_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000
+const INSTALLED_SUPPRESS_MS = 90 * 24 * 60 * 60 * 1000
+type GuideState = { dismissedAt?: number; installedAt?: number }
+const guideStateKey = (appName: string) => `tradr:install-guide:${appName}`
+function readGuideState(appName: string): GuideState {
+  try { return JSON.parse(window.localStorage.getItem(guideStateKey(appName)) || '{}') as GuideState } catch { return {} }
+}
+function writeGuideState(appName: string, patch: GuideState) {
+  try { window.localStorage.setItem(guideStateKey(appName), JSON.stringify({ ...readGuideState(appName), ...patch })) } catch { /* storage unavailable */ }
+}
+function guideSuppressed(appName: string) {
+  const state = readGuideState(appName)
+  const now = Date.now()
+  return Boolean(
+    (state.installedAt && now - state.installedAt < INSTALLED_SUPPRESS_MS) ||
+    (state.dismissedAt && now - state.dismissedAt < DISMISS_COOLDOWN_MS)
+  )
+}
+
 type BrowserGuide = {
   name: string
   menu: string
@@ -146,11 +166,39 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
         ? host === 'admin.tradrr.store'
         : host === 'tradrr.store' || host === 'www.tradrr.store'
     const alreadyRunningAsThisApp = isStandalone && isOwnAppOrigin
-    if (alreadyRunningAsThisApp || new URLSearchParams(window.location.search).has('payment')) return
+    if (alreadyRunningAsThisApp) {
+      writeGuideState(appName, { installedAt: Date.now() })
+      return
+    }
+    if (new URLSearchParams(window.location.search).has('payment')) return
     setIsMobileDevice(isMobile)
     setIsIos(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1))
     // The install guide is a mobile onboarding prompt, not a desktop modal.
     if (!isMobile) return
+
+    // Record installs even if the guide is currently hidden (e.g. installed from the Chrome menu).
+    const onAppInstalled = () => {
+      writeGuideState(appName, { installedAt: Date.now() })
+      deferredInstallPrompt = null
+      ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
+      setInstallPrompt(null)
+      setOpen(false)
+    }
+    window.addEventListener('appinstalled', onAppInstalled)
+    const cleanup = () => window.removeEventListener('appinstalled', onAppInstalled)
+
+    if (guideSuppressed(appName)) return cleanup
+
+    // Best effort: Chrome can report whether this web app is already installed on the device.
+    let cancelled = false
+    const nav = navigator as Navigator & { getInstalledRelatedApps?: () => Promise<Array<{ platform?: string }>> }
+    if (typeof nav.getInstalledRelatedApps === 'function') {
+      nav.getInstalledRelatedApps().then(apps => {
+        if (cancelled || !apps.length) return
+        writeGuideState(appName, { installedAt: Date.now() })
+        setOpen(false)
+      }).catch(() => undefined)
+    }
 
     const onInstallReady = () => {
       const prompt = (window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt ?? deferredInstallPrompt
@@ -160,27 +208,21 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
         setNativeStatus(`Your browser is ready to install ${productName}. Tap Install ${productName} to continue.`)
       }
     }
-    const onAppInstalled = () => {
-      deferredInstallPrompt = null
-      ;(window as Window & { __tradrInstallPrompt?: InstallPromptEvent }).__tradrInstallPrompt = undefined
-      setInstallPrompt(null)
-      setOpen(false)
-    }
     window.addEventListener('tradr-install-ready', onInstallReady)
-    window.addEventListener('appinstalled', onAppInstalled)
     // The browser may dispatch beforeinstallprompt before this effect subscribes.
     // Re-sync the prompt captured at module scope so the button never stays stale.
     if (deferredInstallPrompt) onInstallReady()
     setOpen(true)
     return () => {
+      cancelled = true
       window.removeEventListener('tradr-install-ready', onInstallReady)
-      window.removeEventListener('appinstalled', onAppInstalled)
+      cleanup()
     }
   }, [productName, appName])
 
   function closeGuide() {
-    // Dismiss only for this page visit. The guide reappears in browser mode,
-    // but stays hidden whenever this app is running in its own installed window.
+    // Remember the dismissal so the guide stays quiet for a while (see DISMISS_COOLDOWN_MS).
+    writeGuideState(appName, { dismissedAt: Date.now() })
     setOpen(false)
   }
 
@@ -202,7 +244,8 @@ export default function InstallGuide({ appName = 'tradR' }: { appName?: 'tradR' 
       setInstallPrompt(null)
       if (choice.outcome === 'accepted') {
         setNativeStatus(`${productName} is being added to your device.`)
-        closeGuide()
+        writeGuideState(appName, { installedAt: Date.now() })
+        setOpen(false)
       } else {
         setNativeStatus(`Installation was cancelled. You can tap Install ${productName} again if your browser offers it, or use the manual guide.`)
       }
